@@ -2,3 +2,4 @@ language: csharp
 solution: RoadSignsRecognizer.sln
 script:
   - xbuild /p:TargetFrameworkVersion="v4.0" /p:Configuration=Release Filters/Filters.csproj
+  - xbuild /p:TargetFrameworkVersion="v4.0" /p:Configuration=Release Lib/Lib.csproj
