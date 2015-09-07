@@ -22,18 +22,23 @@
             </Menu>
             <Label Content="Label"/>
         </StackPanel>
-        <Grid DataContext="{StaticResource ImageViewModel}" Background="Blue" Margin="0,20,0,0" Name="ImagesGrid">
+        <Grid DataContext="{StaticResource ImageViewModel}" Background="LightBlue" Margin="0,20,0,0" Name="ImagesGrid">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="10*" />
             </Grid.ColumnDefinitions>
-            <ListBox ItemsSource="{Binding Images}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox Grid.Column="0"
+                     Name="ImagesListBox"
+                     ItemsSource="{Binding Images}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     PreviewMouseDoubleClick="ListBox_PreviewMouseDoubleClick">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Image Source="{Binding Picture}" Width="Auto" Margin="0,2,0,2"></Image>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
+            <Image Grid.Column="1" Name="FilteredImage"></Image>
         </Grid>
     </Grid>
 </Window>

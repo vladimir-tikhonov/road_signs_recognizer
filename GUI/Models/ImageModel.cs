@@ -4,7 +4,11 @@ namespace GUI.Models
 {
     class ImageModel
     {
+        public ImageModel(BitmapSource bitmap)
+        {
+            Picture = bitmap;
+        }
+
         public BitmapSource Picture { get; set; }
-        public string Path { get; set; }
     }
 }

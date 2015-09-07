@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using GUI.Extensions;
@@ -35,17 +36,22 @@ namespace GUI
             var viewModel = new ImageViewModel();
             if (result == System.Windows.Forms.DialogResult.OK)
             {
-                foreach (var filePath in Directory.EnumerateFiles(dialog.SelectedPath, "*.*")
-                    .Where(file => _imageFileExtensions.Any(x => file.EndsWith(x, StringComparison.OrdinalIgnoreCase))))
+                foreach (var model in Directory.EnumerateFiles(dialog.SelectedPath, "*.*")
+                    .Where(file => _imageFileExtensions.Any(x => file.EndsWith(x, StringComparison.OrdinalIgnoreCase)))
+                    .Select(filePath => new ImageModel(new BitmapImage(new Uri(filePath)))))
                 {
-                    var model = new ImageModel
-                    {
-                        Picture = new BitmapImage(new Uri(filePath)),
-                        Path = filePath
-                    };
                     viewModel.Images.Add(model);
                 }
                 ImagesGrid.DataContext = viewModel;
+            }
+        }
+
+        private void ListBox_PreviewMouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var image = e.OriginalSource as Image;
+            if (image != null)
+            {
+                FilteredImage.Source = image.Source;
             }
         }
     }
