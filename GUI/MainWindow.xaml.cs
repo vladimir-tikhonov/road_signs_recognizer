@@ -1,10 +1,52 @@
-﻿namespace GUI
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Forms;
+using System.Windows.Media.Imaging;
+using GUI.Extensions;
+using GUI.Models;
+using GUI.ViewModels;
+using Application = System.Windows.Application;
+
+namespace GUI
 {
     public partial class MainWindow
     {
+        private readonly string[] _imageFileExtensions = {"jpg", "png", "bmp"};
+
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void AppExit_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void OpenDialog_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new FolderBrowserDialog
+            {
+                SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+            };
+            var result = dialog.ShowDialog(this.GetIWin32Window());
+            var viewModel = new ImageViewModel();
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                foreach (var filePath in Directory.EnumerateFiles(dialog.SelectedPath, "*.*")
+                    .Where(file => _imageFileExtensions.Any(x => file.EndsWith(x, StringComparison.OrdinalIgnoreCase))))
+                {
+                    var model = new ImageModel
+                    {
+                        Picture = new BitmapImage(new Uri(filePath)),
+                        Path = filePath
+                    };
+                    viewModel.Images.Add(model);
+                }
+                ImagesGrid.DataContext = viewModel;
+            }
         }
     }
 }
