@@ -2,13 +2,14 @@
 using System.IO;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using GUI.Extensions;
 using GUI.Models;
 using GUI.ViewModels;
+using Lib;
 using Application = System.Windows.Application;
+using Image = System.Windows.Controls.Image;
 
 namespace GUI
 {
@@ -51,7 +52,12 @@ namespace GUI
             var image = e.OriginalSource as Image;
             if (image != null)
             {
-                FilteredImage.Source = image.Source;
+                var bitmap = BitmapConverter.GetBitmap(image.Source as BitmapSource);
+                bitmap = (from object filterObject in FiltersMenu.ItemsSource
+                          select (filterObject as FilterModel) into filterModel
+                          where filterModel.Enabled select filterModel.Filter)
+                          .Aggregate(bitmap, (current, filter) => filter.Process(current));
+                FilteredImage.Source = BitmapConverter.GetBitmapSource(bitmap);
             }
         }
     }

@@ -9,18 +9,25 @@
         Height="550" Width="825">
     <Window.Resources>
         <loc:ImageViewModel x:Key="ImageViewModel"></loc:ImageViewModel>
+        <loc:FilterViewModel x:Key="FilterViewModel"></loc:FilterViewModel>
     </Window.Resources>
     <Grid>
         <StackPanel VerticalAlignment="Top">
-            <Menu Width="Auto" Height="20">
+            <Menu Width="Auto" Height="20" DataContext="{StaticResource FilterViewModel}">
                 <MenuItem Header="Файл">
                     <MenuItem x:Name="OpenDialog" Header="Выбрать папку..." HorizontalAlignment="Left" Width="180" Click="OpenDialog_Click"/>
                     <MenuItem x:Name="AppExit" Header="Выход" HorizontalAlignment="Left" Width="180" Click="AppExit_Click"/>
                 </MenuItem>
-                <MenuItem Header="Фильтры">
+                <MenuItem Header="Фильтры" Name="FiltersMenu" ItemsSource="{Binding Filters}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding Name}" />
+                            <Setter Property="IsCheckable" Value="True" />
+                            <Setter Property="IsChecked" Value="{Binding Enabled}" />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
                 </MenuItem>
             </Menu>
-            <Label Content="Label"/>
         </StackPanel>
         <Grid DataContext="{StaticResource ImageViewModel}" Background="LightBlue" Margin="0,20,0,0" Name="ImagesGrid">
             <Grid.ColumnDefinitions>

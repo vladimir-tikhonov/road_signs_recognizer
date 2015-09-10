@@ -19,6 +19,12 @@ namespace Lib
             return new LabColor(new XyzColor(Color.FromRgb(r, g, b)));
         }
 
+        public double DistanceTo(LabColor otherColor)
+        {
+            return
+                Math.Sqrt(Math.Pow(L - otherColor.L, 2) + Math.Pow(A - otherColor.A, 2) + Math.Pow(B - otherColor.B, 2));
+        }
+
         public override string ToString()
         {
             return $"L: {L}, A: {A}, B: {B}";
