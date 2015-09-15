@@ -8,7 +8,8 @@ namespace GUI.ViewModels
     {
         public FilterViewModel()
         {
-            Filters = new ObservableCollection<FilterModel> {new FilterModel(new Trinarization(), "Тринаризация")};
+            Filters = new ObservableCollection<FilterModel> {new FilterModel(new Trinarization(), "Тринаризация"),
+                new FilterModel(new Sobel(), "Собеля")};
         }
 
         public ObservableCollection<FilterModel> Filters { get; set; }
