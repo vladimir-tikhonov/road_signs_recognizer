@@ -6,12 +6,9 @@ using Color = System.Windows.Media.Color;
 
 namespace Filters
 {
-    public class Trinarization : IFilter
+    public class Binarization : IFilter
     {
-        private readonly LabColor _yellow = LabColor.FromRgb(255, 255, 0);
-        private readonly LabColor _lightBlue = LabColor.FromRgb(22, 111, 193);
-        private readonly LabColor _blue = LabColor.FromRgb(0, 0, 255);
-        private readonly LabColor _red = LabColor.FromRgb(255, 0, 0);
+        private readonly LabColor _black = LabColor.FromRgb(0, 0, 0);
         private const int ToleranceDistance = 40;
 
         public Bitmap Process(Bitmap image)
@@ -45,24 +42,8 @@ namespace Filters
         private Color GetNewColor(byte r, byte g, byte b)
         {
             var labColor = LabColor.FromRgb(r, g, b);
-            if (_yellow.DistanceTo(labColor) < ToleranceDistance ||
-                _lightBlue.DistanceTo(labColor) < ToleranceDistance ||
-                _blue.DistanceTo(labColor) < ToleranceDistance)
-            {
-                return Color.FromRgb(128, 128, 128);
-            }
-            else if (_red.DistanceTo(labColor) < ToleranceDistance)
-            {
-                return Color.FromRgb(0, 0, 0);
-            }
-            else if (labColor.L < 50)
-            {
-                return Color.FromRgb(0, 0, 0);
-            }
-            else
-            {
-                return Color.FromRgb(255, 255, 255);
-            }
+            return _black.DistanceTo(labColor) < ToleranceDistance ?
+                Color.FromRgb(0, 0, 0) : Color.FromRgb(255, 255, 255);
         }
     }
 }

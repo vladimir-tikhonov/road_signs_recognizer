@@ -23,7 +23,7 @@ namespace Filters
                 var widthInBytes = bitmapData.Width * bytesPerPixel;
                 var ptrFirstPixel = (byte*)bitmapData.Scan0;
 
-                var newRGBValues = new byte[bitmapData.Width * bitmapData.Height * bytesPerPixel];
+                var newRgbValues = new byte[bitmapData.Width * bitmapData.Height * bytesPerPixel];
 
                 Parallel.For(0, heightInPixels, y =>
                 {
@@ -41,7 +41,7 @@ namespace Filters
 
                     for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
                     {
-                        Color[][] currentPixelWindow = new Color[3][];
+                        var currentPixelWindow = new Color[3][];
 
                         for (var i = 0; i < ptrWindowBaseLines.Length; i++)
                         {
@@ -66,14 +66,14 @@ namespace Filters
                         }
 
                         Color newColor = GetNewColor(currentPixelWindow);
-                        newRGBValues[y * widthInBytes + x] = newColor.B;
-                        newRGBValues[y * widthInBytes + x + 1] = newColor.G;
-                        newRGBValues[y * widthInBytes + x + 2] = newColor.R;
-                        newRGBValues[y * widthInBytes + x + 3] = newColor.A;
+                        newRgbValues[y * widthInBytes + x] = newColor.B;
+                        newRgbValues[y * widthInBytes + x + 1] = newColor.G;
+                        newRgbValues[y * widthInBytes + x + 2] = newColor.R;
+                        newRgbValues[y * widthInBytes + x + 3] = newColor.A;
                     }
                 });
 
-                Marshal.Copy(newRGBValues, 0, (IntPtr)ptrFirstPixel, newRGBValues.Length);
+                Marshal.Copy(newRgbValues, 0, (IntPtr)ptrFirstPixel, newRgbValues.Length);
                 image.UnlockBits(bitmapData);
             }
 
