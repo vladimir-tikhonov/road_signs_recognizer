@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace Filters
 {
     public class Median : IFilter
     {
-        private readonly Color _default = Color.FromArgb(255, 0, 0, 0);
-        private readonly int _radius = 2;
+        private const int Radius = 2;
 
         public Bitmap Process(Bitmap image)
         {
@@ -28,11 +25,11 @@ namespace Filters
 
                 var newRgbValues = new byte[bitmapData.Width * bitmapData.Height * bytesPerPixel];
 
-                for (int y = 0; y < heightInPixels; y++)
+                for (var y = 0; y < heightInPixels; y++)
                 {
-                    var ptrWindowBaseLines = new byte*[_radius * 2 + 1];
+                    var ptrWindowBaseLines = new byte*[Radius * 2 + 1];
                     var index = 0;
-                    for (var i = y - _radius; i <= y + _radius; i++)
+                    for (var i = y - Radius; i <= y + Radius; i++)
                     {
                         if (i >= 0 && i < heightInPixels)
                         {
@@ -48,35 +45,36 @@ namespace Filters
 
                     for (var x = 0; x < widthInPixels; x++)
                     {
-                        var currentPixelWindow = new List<Color>();
+                        var currentPixelWindow = new List<byte[]>();
                         
                         //indexX and indexY - positions in pixels relative to current point
-                        for (var indexY = -_radius; indexY <= _radius; indexY++)
+                        for (var indexY = -Radius; indexY <= Radius; indexY++)
                         {
-                            if (ptrWindowBaseLines[indexY + _radius] == null)
+                            if (ptrWindowBaseLines[indexY + Radius] == null)
                             {
                                 continue;
                             }
 
-                            var currentRow = ptrWindowBaseLines[indexY + _radius];
+                            var currentRow = ptrWindowBaseLines[indexY + Radius];
 
-                            for (int indexX = -_radius; indexX <= _radius; indexX++)
+                            for (var indexX = -Radius; indexX <= Radius; indexX++)
                             {
                                 if ((x + indexX) * bytesPerPixel >= 0
                                     && (x + indexX) * bytesPerPixel < widthInBytes
-                                    && Math.Abs(indexX) + Math.Abs(indexY) <= _radius //rhombus
+                                    && Math.Abs(indexX) + Math.Abs(indexY) <= Radius //rhombus
                                     )
                                 {
-                                    currentPixelWindow.Add(Color.FromArgb(
-                                        alpha: currentRow[(x + indexX) * bytesPerPixel + 3],
-                                        red: currentRow[(x + indexX) * bytesPerPixel + 2],
-                                        green: currentRow[(x + indexX) * bytesPerPixel + 1],
-                                        blue: currentRow[(x + indexX) * bytesPerPixel]));
+                                    currentPixelWindow.Add(new[]
+                                    {
+                                        currentRow[(x + indexX) * bytesPerPixel + 2],
+                                        currentRow[(x + indexX) * bytesPerPixel + 1],
+                                        currentRow[(x + indexX) * bytesPerPixel]
+                                    });
                                 }
                             }
                         }
 
-                        Color newColor = GetNewColor(currentPixelWindow);
+                        var newColor = GetNewColor(currentPixelWindow);
                         newRgbValues[y * widthInBytes + x * bytesPerPixel] = newColor.B;
                         newRgbValues[y * widthInBytes + x * bytesPerPixel + 1] = newColor.G;
                         newRgbValues[y * widthInBytes + x * bytesPerPixel + 2] = newColor.R;
@@ -91,34 +89,32 @@ namespace Filters
             return image;
         }
 
-        private Color GetNewColor(List<Color> window)
+        private Color GetNewColor(List<byte[]> window)
         {
-            int centralIndex = window.Count / 2;
+            var centralIndex = window.Count / 2;
 
-            var alphaValues = new byte[window.Count];
             var redValues = new byte[window.Count];
             var greenValues = new byte[window.Count];
             var blueValues = new byte[window.Count];
 
-            for (int i = 0; i < window.Count; i++)
+            for (var i = 0; i < window.Count; i++)
             {
-                alphaValues[i] = window[i].A;
-                redValues[i] = window[i].R;
-                greenValues[i] = window[i].G;
-                blueValues[i] = window[i].B;
+                var tmp = window[i];
+                redValues[i] = tmp[0];
+                greenValues[i] = tmp[1];
+                blueValues[i] = tmp[2];
             }
 
-            Array.Sort(alphaValues);
             Array.Sort(redValues);
             Array.Sort(greenValues);
             Array.Sort(blueValues);
 
             var newColor = Color.FromArgb(
-                alpha: alphaValues[centralIndex],
+                alpha: 255,
                 red: redValues[centralIndex],
                 green: greenValues[centralIndex],
                 blue: blueValues[centralIndex]
-                );
+            );
 
             return newColor;
         }

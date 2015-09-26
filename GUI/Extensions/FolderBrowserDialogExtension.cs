@@ -11,13 +11,12 @@
 
         private class OldWindow : System.Windows.Forms.IWin32Window
         {
-            private readonly System.IntPtr _handle;
             public OldWindow(System.IntPtr handle)
             {
-                _handle = handle;
+                Handle = handle;
             }
             
-            public System.IntPtr Handle { get { return _handle; } }
+            public System.IntPtr Handle { get; }
         }
 
     }
