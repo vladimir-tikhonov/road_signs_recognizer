@@ -16,8 +16,11 @@
             {
                 _handle = handle;
             }
-
-            System.IntPtr System.Windows.Forms.IWin32Window.Handle => _handle;
+            
+            public System.IntPtr Handle 
+            { get { return _handle; } }
+            //System.IntPtr System.Windows.Forms.IWin32Window.Handle => _handle;
         }
+
     }
 }

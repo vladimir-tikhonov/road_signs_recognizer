@@ -27,7 +27,7 @@ namespace Lib
 
         public override string ToString()
         {
-            return $"L: {L}, A: {A}, B: {B}";
+            return "L: {L}, A: {A}, B: {B}";//$"L: {L}, A: {A}, B: {B}";
         }
 
         private void BuildFromXyz(double x, double y, double z)
