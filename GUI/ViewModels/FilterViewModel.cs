@@ -10,8 +10,9 @@ namespace GUI.ViewModels
         {
             Filters = new ObservableCollection<FilterModel>
             {
+                new FilterModel(new Median(), "Медианный фильтр", false),
                 new FilterModel(new Sobel(), "Собеля"),
-                new FilterModel(new Binarization(), "Бинаризация")
+                new FilterModel(new Binarization(), "Бинаризация"),
             };
         }
 
