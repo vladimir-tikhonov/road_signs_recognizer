@@ -63,6 +63,7 @@ namespace Filters
                             for (int indexX = -_radius; indexX <= _radius; indexX++)
                             {
                                 if ((x + indexX) * bytesPerPixel >= 0
+                                    && (x + indexX) * bytesPerPixel < widthInBytes
                                     && Math.Abs(indexX) + Math.Abs(indexY) <= _radius //rhombus
                                     )
                                 {
@@ -107,10 +108,10 @@ namespace Filters
                 blueValues[i] = window[i].B;
             }
 
-            Array.Sort(alphaValues, (emp1, emp2) => emp1.CompareTo(emp2));
-            Array.Sort(redValues, (emp1, emp2) => emp1.CompareTo(emp2));
-            Array.Sort(greenValues, (emp1, emp2) => emp1.CompareTo(emp2));
-            Array.Sort(blueValues, (emp1, emp2) => emp1.CompareTo(emp2));
+            Array.Sort(alphaValues);
+            Array.Sort(redValues);
+            Array.Sort(greenValues);
+            Array.Sort(blueValues);
 
             var newColor = Color.FromArgb(
                 alpha: alphaValues[centralIndex],
