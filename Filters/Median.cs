@@ -24,6 +24,7 @@ namespace Filters
                 var ptrFirstPixel = (byte*)bitmapData.Scan0;
 
                 var newRgbValues = new byte[bitmapData.Width * bitmapData.Height * bytesPerPixel];
+                var currentPixelWindow = new List<byte[]>(16);
 
                 for (var y = 0; y < heightInPixels; y++)
                 {
@@ -45,8 +46,7 @@ namespace Filters
 
                     for (var x = 0; x < widthInPixels; x++)
                     {
-                        var currentPixelWindow = new List<byte[]>();
-                        
+                        currentPixelWindow.Clear();
                         //indexX and indexY - positions in pixels relative to current point
                         for (var indexY = -Radius; indexY <= Radius; indexY++)
                         {
@@ -75,10 +75,10 @@ namespace Filters
                         }
 
                         var newColor = GetNewColor(currentPixelWindow);
-                        newRgbValues[y * widthInBytes + x * bytesPerPixel] = newColor.B;
-                        newRgbValues[y * widthInBytes + x * bytesPerPixel + 1] = newColor.G;
-                        newRgbValues[y * widthInBytes + x * bytesPerPixel + 2] = newColor.R;
-                        newRgbValues[y * widthInBytes + x * bytesPerPixel + 3] = newColor.A;
+                        newRgbValues[y * widthInBytes + x * bytesPerPixel] = newColor[2];
+                        newRgbValues[y * widthInBytes + x * bytesPerPixel + 1] = newColor[1];
+                        newRgbValues[y * widthInBytes + x * bytesPerPixel + 2] = newColor[0];
+                        newRgbValues[y * widthInBytes + x * bytesPerPixel + 3] = 255;
                     }
                 }
 
@@ -89,7 +89,7 @@ namespace Filters
             return image;
         }
 
-        private Color GetNewColor(List<byte[]> window)
+        private static byte[] GetNewColor(List<byte[]> window)
         {
             var centralIndex = window.Count / 2;
 
@@ -105,19 +105,29 @@ namespace Filters
                 blueValues[i] = tmp[2];
             }
 
-            Array.Sort(redValues);
-            Array.Sort(greenValues);
-            Array.Sort(blueValues);
-
-            var newColor = Color.FromArgb(
-                alpha: 255,
-                red: redValues[centralIndex],
-                green: greenValues[centralIndex],
-                blue: blueValues[centralIndex]
-            );
-
-            return newColor;
+            return new [] { GetNSmallest(redValues, centralIndex),
+                GetNSmallest(greenValues, centralIndex),
+                GetNSmallest(blueValues, centralIndex) };
         }
 
+        private static byte GetNSmallest(byte[] arr, int n)
+        {
+            var tmp = new byte[256];
+            foreach (var b in arr)
+            {
+                tmp[b]++;
+            }
+
+            var sum = 0;
+            for (byte i = 0; i <= 255; i++)
+            {
+                sum += tmp[i];
+                if (sum >= n)
+                {
+                    return i;
+                }
+            }
+            return 0;
+        }
     }
 }
