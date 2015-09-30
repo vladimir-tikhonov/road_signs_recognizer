@@ -15,7 +15,7 @@ namespace GUI
 {
     public partial class MainWindow
     {
-        private readonly string[] _imageFileExtensions = {"jpg", "png", "bmp"};
+        private readonly string[] _imageFileExtensions = {"jpg", "png", "bmp", "jpeg"};
 
         public MainWindow()
         {
