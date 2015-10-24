@@ -6,7 +6,7 @@ namespace Lib
     public static class HoughTransform
     {
         private const double GradientTreshold = 3.5;
-        private const int DistQuintizeTreshold = 5;
+        private const int DistQuintizeTreshold = 4;
 
         public static List<int[]> GetLines(byte[,] image)
         {
@@ -100,7 +100,7 @@ namespace Lib
         {
             var value = a[r, c];
             var testedDistances = new List<int>();
-            for (var i = 1; i <= 3; i++)
+            for (var i = 1; i < 2; i++)
             {
                 var upperTestedDistance = r - i*DistQuintizeTreshold;
                 if (upperTestedDistance >= 0)
