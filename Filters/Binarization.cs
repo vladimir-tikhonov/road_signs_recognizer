@@ -9,7 +9,7 @@ namespace Filters
     public class Binarization : IFilter
     {
         private readonly LabColor _black = LabColor.FromRgb(0, 0, 0);
-        private const int ToleranceDistance = 40;
+        private const int ToleranceDistance = 80;
 
         public Bitmap Process(Bitmap image)
         {

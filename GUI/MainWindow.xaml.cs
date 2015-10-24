@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -50,14 +52,50 @@ namespace GUI
         private void ListBox_PreviewMouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             var image = e.OriginalSource as Image;
-            if (image != null)
+            if (image == null)
             {
-                var bitmap = BitmapConverter.GetBitmap(image.Source as BitmapSource);
-                bitmap = (from object filterObject in FiltersMenu.ItemsSource
-                          select (filterObject as FilterModel) into filterModel
-                          where filterModel.Enabled select filterModel.Filter)
-                          .Aggregate(bitmap, (current, filter) => filter.Process(current));
-                FilteredImage.Source = BitmapConverter.GetBitmapSource(bitmap);
+                return;
+            }
+
+            var bitmap = BitmapConverter.GetBitmap(image.Source as BitmapSource);
+            bitmap = (from object filterObject in FiltersMenu.ItemsSource
+                select (filterObject as FilterModel) into filterModel
+                where filterModel.Enabled select filterModel.Filter)
+                .Aggregate(bitmap, (current, filter) => filter.Process(current)); 
+            var binarizedImage = BitmapBinarizer.Process(bitmap);
+            var lines = HoughTransform.GetLines(binarizedImage);
+            DrawLinesOnBitmap(bitmap, lines);
+            FilteredImage.Source = BitmapConverter.GetBitmapSource(bitmap);
+            // TODO: extract rectangles
+        }
+
+        private void DrawLinesOnBitmap(Bitmap bitmap, List<int[]> lines)
+        {
+            using (var graphics = Graphics.FromImage(bitmap))
+            {
+                var pen = new Pen(Color.Yellow, 3);
+                foreach (var line in lines)
+                {
+                    if (line[1] <= 90)
+                    {
+                        var xStart = line[0] / (float)Math.Cos(line[1] * (Math.PI / 180.0));
+                        float yStart = 0;
+                        float xEnd = 0;
+                        var yEnd = line[0] / (float)Math.Cos((90 - line[1]) * (Math.PI / 180.0));
+                        if (line[1] == 0)
+                        {
+                            yEnd = bitmap.Height;
+                            xEnd = xStart;
+                        }
+                        if (line[1] == 90)
+                        {
+                            xStart = 0;
+                            yStart = yEnd;
+                            xEnd = bitmap.Width;
+                        }
+                        graphics.DrawLine(pen, xStart, yStart, xEnd, yEnd);
+                    }
+                }
             }
         }
     }
