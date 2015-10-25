@@ -62,13 +62,33 @@ namespace GUI
                 select (filterObject as FilterModel) into filterModel
                 where filterModel.Enabled select filterModel.Filter)
                 .Aggregate(bitmap, (current, filter) => filter.Process(current)); 
-            var binarizedImage = BitmapBinarizer.Process(bitmap);
-            var lines = HoughTransform.GetLines(binarizedImage);
-            DrawLinesOnBitmap(bitmap, lines);
+
             FilteredImage.Source = BitmapConverter.GetBitmapSource(bitmap);
-            // TODO: extract rectangles
+            ExtractParts(bitmap);
         }
 
+        private void ExtractParts(Bitmap bitmap)
+        {
+            var binarizedImage = BitmapBinarizer.Process(bitmap);
+            var lines = HoughTransform.GetLines(binarizedImage);
+            var circles = HoughTransform.GetCircles(binarizedImage);
+
+            var viewModel = (ImagesGrid.DataContext) as ImageViewModel;
+            if (viewModel == null)
+            {
+                return;
+            }
+
+            var circleBitmaps = CirclesExtracter.Extract(bitmap, circles);
+            viewModel.Circles.Clear();
+            foreach (var circlesBitmap in circleBitmaps)
+            {
+                viewModel.Circles.Add(new ImageModel(BitmapConverter.GetBitmapSource(circlesBitmap)));
+            }
+            // DrawLinesOnBitmap(bitmap, lines);
+        }
+
+        // TODO: Remove this
         private void DrawLinesOnBitmap(Bitmap bitmap, List<int[]> lines)
         {
             using (var graphics = Graphics.FromImage(bitmap))
