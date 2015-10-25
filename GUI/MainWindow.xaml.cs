@@ -61,10 +61,10 @@ namespace GUI
             bitmap = (from object filterObject in FiltersMenu.ItemsSource
                 select (filterObject as FilterModel) into filterModel
                 where filterModel.Enabled select filterModel.Filter)
-                .Aggregate(bitmap, (current, filter) => filter.Process(current)); 
+                .Aggregate(bitmap, (current, filter) => filter.Process(current));
 
-            FilteredImage.Source = BitmapConverter.GetBitmapSource(bitmap);
             ExtractParts(bitmap);
+            FilteredImage.Source = BitmapConverter.GetBitmapSource(bitmap);
         }
 
         private void ExtractParts(Bitmap bitmap)
@@ -85,7 +85,9 @@ namespace GUI
             {
                 viewModel.Circles.Add(new ImageModel(BitmapConverter.GetBitmapSource(circlesBitmap)));
             }
-            // DrawLinesOnBitmap(bitmap, lines);
+
+            TrianglesExtractor.Extract(bitmap, binarizedImage, lines);
+            DrawLinesOnBitmap(bitmap, lines);
         }
 
         // TODO: Remove this

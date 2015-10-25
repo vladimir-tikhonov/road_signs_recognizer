@@ -27,7 +27,7 @@ namespace Lib
                         var theta = Math.Atan2(dr, dc);
                         if (theta < 0)
                         {
-                            theta += Math.PI;
+                            theta += 2 * Math.PI;
                         }
                         var thetaq = (int) RadianToDegree(theta);
                         var d = (int) Math.Abs(c*Math.Cos(theta) + r*Math.Sin(theta));
@@ -40,7 +40,7 @@ namespace Lib
             {
                 for (var c = 0; c < a.GetLength(1); c++)
                 {
-                    if (a[r, c] > 50)
+                    if (a[r, c] > 15)
                     {
                         if (IsLocalMaximum(a, r, c))
                         {
@@ -58,7 +58,6 @@ namespace Lib
             var points = new int[image.GetLength(0), image.GetLength(1)];
             var radiuses = new List<int>[image.GetLength(0), image.GetLength(1)];
 
-
             for (var r = 0; r < image.GetLength(0); r++)
             {
                 for (var c = 0; c < image.GetLength(1); c++)
@@ -72,7 +71,7 @@ namespace Lib
                         var theta = Math.Atan2(dc, dr);
                         if (theta < 0)
                         {
-                            theta += Math.PI;
+                            theta += 2 * Math.PI;
                         }
                         var tan = Math.Tan(theta);
                         if (tan > 1000 || Math.Abs(tan) < 0.5)
@@ -201,15 +200,15 @@ namespace Lib
         {
             var value = a[r, c];
             var testedDistances = new List<int>();
-            for (var i = 1; i < 2; i++)
+            for (var i = 1; i < 2 * DistQuintizeTreshold; i++)
             {
-                var upperTestedDistance = r - i*DistQuintizeTreshold;
+                var upperTestedDistance = r - i;
                 if (upperTestedDistance >= 0)
                 {
                     testedDistances.Add(upperTestedDistance);
                 }
 
-                var lowerTestedDistance = r + i * DistQuintizeTreshold;
+                var lowerTestedDistance = r + i;
                 if (lowerTestedDistance <= a.GetLength(0))
                 {
                     testedDistances.Add(lowerTestedDistance);
