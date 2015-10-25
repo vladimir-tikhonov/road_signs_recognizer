@@ -109,8 +109,13 @@ namespace Lib
                     }
                 }
             }
+
             var distinctPoints = pointsCount.Distinct().ToList();
-            var treshold = distinctPoints.OrderByDescending(p => p).ElementAt(distinctPoints.Count / 2);
+            var treshold = 0;
+            if (distinctPoints.Count > 0)
+            {
+                treshold = distinctPoints.OrderByDescending(p => p).ElementAt(distinctPoints.Count / 2);
+            }          
             for (var r = 0; r < points.GetLength(0); r++)
             {
                 for (var c = 0; c < points.GetLength(1); c++)
