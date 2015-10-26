@@ -86,7 +86,12 @@ namespace GUI
                 viewModel.Circles.Add(new ImageModel(BitmapConverter.GetBitmapSource(circlesBitmap)));
             }
 
-            TrianglesExtractor.Extract(bitmap, binarizedImage, lines);
+            var trianglesBitmap = TrianglesExtractor.Extract(bitmap, binarizedImage, lines);
+            viewModel.Triangles.Clear();
+            foreach (var triangleBitmap in trianglesBitmap)
+            {
+                viewModel.Triangles.Add(new ImageModel(BitmapConverter.GetBitmapSource(triangleBitmap)));
+            }
             DrawLinesOnBitmap(bitmap, lines);
         }
 

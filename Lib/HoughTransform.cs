@@ -6,7 +6,7 @@ namespace Lib
 {
     public static class HoughTransform
     {
-        private const double GradientTreshold = 3.5;
+        private const double GradientTreshold = 3.0;
         private const int DistQuintizeTreshold = 4;
 
         public static List<int[]> GetLines(byte[,] image)
@@ -14,9 +14,9 @@ namespace Lib
             var result = new List<int[]>();
             var a = new int[image.Length / 2, 360];
 
-            for (var r = 0; r < image.GetLength(0); r++)
+            for (var r = 2; r < image.GetLength(0) - 2; r++)
             {
-                for (var c = 0; c < image.GetLength(1); c++)
+                for (var c = 2; c < image.GetLength(1) - 2; c++)
                 {
                     var dr = RowGradient(image, r, c);
                     var dc = ColGradient(image, r, c);
@@ -31,7 +31,7 @@ namespace Lib
                         }
                         var thetaq = (int) RadianToDegree(theta);
                         var d = (int) Math.Abs(c*Math.Cos(theta) + r*Math.Sin(theta));
-                        var dq = QuantizeDistance(d);
+                        var dq = d; //QuantizeDistance(d);
                         a[dq, thetaq]++;
                     }
                 }
@@ -40,7 +40,7 @@ namespace Lib
             {
                 for (var c = 0; c < a.GetLength(1); c++)
                 {
-                    if (a[r, c] > 15)
+                    if (a[r, c] > 10)
                     {
                         if (IsLocalMaximum(a, r, c))
                         {
@@ -216,11 +216,7 @@ namespace Lib
             }
             foreach (var testedDistance in testedDistances)
             {
-                if (a[testedDistance, c] > value && testedDistance > r)
-                {
-                    return false;
-                }
-                if (a[testedDistance, c] >= value && testedDistance <= r)
+                if (a[testedDistance, c] > value)
                 {
                     return false;
                 }
