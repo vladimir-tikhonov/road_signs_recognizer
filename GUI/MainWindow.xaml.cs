@@ -92,7 +92,13 @@ namespace GUI
             {
                 viewModel.Triangles.Add(new ImageModel(BitmapConverter.GetBitmapSource(triangleBitmap)));
             }
-            DrawLinesOnBitmap(bitmap, lines);
+
+            var rectanglesBitmap = RectanglesExtractor.Extract(bitmap, binarizedImage, lines);
+            viewModel.Rectangles.Clear();
+            foreach (var recangleBitmap in rectanglesBitmap)
+            {
+                viewModel.Rectangles.Add(new ImageModel(BitmapConverter.GetBitmapSource(recangleBitmap)));
+            }
         }
 
         // TODO: Remove this
@@ -100,7 +106,7 @@ namespace GUI
         {
             using (var graphics = Graphics.FromImage(bitmap))
             {
-                var pen = new Pen(Color.Yellow, 3);
+                var pen = new Pen(Color.Yellow, 1);
                 foreach (var line in lines)
                 {
                     if (line[1] <= 90)

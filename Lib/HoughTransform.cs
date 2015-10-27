@@ -31,7 +31,7 @@ namespace Lib
                         }
                         var thetaq = (int) RadianToDegree(theta);
                         var d = (int) Math.Abs(c*Math.Cos(theta) + r*Math.Sin(theta));
-                        var dq = d; //QuantizeDistance(d);
+                        var dq = d;
                         a[dq, thetaq]++;
                     }
                 }
