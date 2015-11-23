@@ -15,8 +15,8 @@
             {
                 Handle = handle;
             }
-            
-            public System.IntPtr Handle { get; }
+
+            public System.IntPtr Handle { get; set; }
         }
 
     }
