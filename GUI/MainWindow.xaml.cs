@@ -12,6 +12,7 @@ using GUI.ViewModels;
 using Lib;
 using Application = System.Windows.Application;
 using Image = System.Windows.Controls.Image;
+using Classifier;
 
 namespace GUI
 {
@@ -26,6 +27,11 @@ namespace GUI
 
         private void AppExit_Click(object sender, RoutedEventArgs e)
         {
+            TryClassifier tc = new TryClassifier();
+            List<Sign> result = tc.Main();
+            int num = tc.FindClass(new Sign(20,1, 27, 1,57));
+
+
             Application.Current.Shutdown();
         }
 
