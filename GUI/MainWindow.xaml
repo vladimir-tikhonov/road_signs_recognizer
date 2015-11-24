@@ -105,6 +105,88 @@
                         </DockPanel>
                     </Grid>
                 </TabItem>
+                <TabItem Header="Классифицированные знаки" >
+                    <Grid Background="LightBlue" Margin="0,20,0,0" Name="ClassifiedPartsGrid">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+
+                        <DockPanel Grid.Column="0">
+                            <Label DockPanel.Dock="Top" Content="Предупреждающие знаки" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+                            <ListBox Name="WarningSignsListBox"
+                             ItemsSource="{Binding WarningSigns}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.CanContentScroll="False">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding Picture}" Width="Auto" Margin="0,2,0,2"></Image>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+
+                            </ListBox>
+                        </DockPanel>
+
+                        <DockPanel Grid.Column="1">
+                            <Label DockPanel.Dock="Top" Content="Запрещающие знаки" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+                            <ListBox Name="ProhibitingSignsListBox"
+                             ItemsSource="{Binding ProhibitingSigns}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.CanContentScroll="False">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding Picture}" Width="Auto" Margin="0,2,0,2"></Image>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+
+                        <DockPanel Grid.Column="2">
+                            <Label DockPanel.Dock="Top" Content="Предписывыющие знаки" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+                            <ListBox Name="RegulatorySignsListBox"
+                             ItemsSource="{Binding RegulatorySigns}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.CanContentScroll="False">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding Picture}" Width="Auto" Margin="0,2,0,2"></Image>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+
+                        <DockPanel Grid.Column="3">
+                            <Label DockPanel.Dock="Top" Content="Информационные знаки" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+                            <ListBox Name="InformationSignsListBox"
+                             ItemsSource="{Binding InformationSigns}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.CanContentScroll="False">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding Picture}" Width="Auto" Margin="0,2,0,2"></Image>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+
+                        <DockPanel Grid.Column="4">
+                            <Label DockPanel.Dock="Top" Content="Временные знаки" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+                            <ListBox Name="TemporarySignsListBox"
+                             ItemsSource="{Binding TemporarySigns}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.CanContentScroll="False">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding Picture}" Width="Auto" Margin="0,2,0,2"></Image>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+                    </Grid>
+                </TabItem>
             </TabControl>
         </Grid>
     </Grid>

@@ -10,9 +10,11 @@ namespace Lib
     {
         private const int AngleTolerance = 10;
 
-        public static List<Bitmap> Extract(Bitmap image, byte[,] binarizedImage, List<int[]> lines, bool strip = true)
+        public static List<Bitmap>[] Extract(Bitmap processedImage, Bitmap originalImage, byte[,] binarizedImage, List<int[]> lines, bool strip = true)
         {
-            var result = new List<Bitmap>();
+            var extractedFromProcessed = new List<Bitmap>();
+            var extractedFromOriginal = new List<Bitmap>();
+
             var horizontalLines = GetLinesByAngle(90, lines);
             var verticalLines = GetLinesByAngle(0, lines);
 
@@ -84,29 +86,41 @@ namespace Lib
 
             foreach (var rectangle in filteredRectangles)
             {
-                var croppedImage = image.Clone(rectangle, image.PixelFormat);
+                var croppedImage = processedImage.Clone(rectangle, processedImage.PixelFormat);
+                var croppedOriginalImage = originalImage.Clone(rectangle, originalImage.PixelFormat);
                 if (strip)
                 {
-                    croppedImage = StripImage(croppedImage);
+                    croppedImage = StripImage(croppedImage, Color.Black);
+                    croppedOriginalImage = StripImage(croppedOriginalImage, Color.Black, false);
                 }
-                result.Add(croppedImage);
+                extractedFromProcessed.Add(croppedImage);
+                extractedFromOriginal.Add(croppedOriginalImage);
             }
 
-            return result;
+            return new[] { extractedFromProcessed, extractedFromOriginal };
         }
 
-        private static Bitmap StripImage(Bitmap bitmap)
+        private static Bitmap StripImage(Bitmap bitmap, Color color, bool cutImage = true)
         {
             var result = bitmap.Clone() as Bitmap;
             var g = Graphics.FromImage(result);
-            using (Brush br = new SolidBrush(Color.Black))
+            using (Brush br = new SolidBrush(color))
             {
                 g.FillRectangle(br, 0, 0, bitmap.Width, bitmap.Height);
             }
             var path = new GraphicsPath();
-            var offsetX = (int)(bitmap.Width * 0.10);
-            var offsetY = (int)(bitmap.Height * 0.10);
-            path.AddRectangle(new Rectangle(offsetX, offsetY, bitmap.Width - 2 * offsetX, bitmap.Height - 2 * offsetY));
+
+            if (cutImage)
+            {
+                var offsetX = (int)(bitmap.Width * 0.10);
+                var offsetY = (int)(bitmap.Height * 0.10);
+                path.AddRectangle(new Rectangle(offsetX, offsetY, bitmap.Width - 2 * offsetX, bitmap.Height - 2 * offsetY));
+            }
+            else
+            {
+                path.AddRectangle(new Rectangle(0, 0, bitmap.Width, bitmap.Width));
+            }
+            
             g.SetClip(path);
             g.DrawImage(bitmap, 0, 0);
             return result;

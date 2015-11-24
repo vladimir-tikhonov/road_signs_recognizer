@@ -58,16 +58,17 @@ namespace GUI
             }
 
             var bitmap = BitmapConverter.GetBitmap(image.Source as BitmapSource);
+            var originalBitmap = bitmap.Clone() as Bitmap;
             bitmap = (from object filterObject in FiltersMenu.ItemsSource
                 select (filterObject as FilterModel) into filterModel
                 where filterModel.Enabled select filterModel.Filter)
                 .Aggregate(bitmap, (current, filter) => filter.Process(current));
 
-            ExtractParts(bitmap);
+            ExtractParts(bitmap, originalBitmap);
             FilteredImage.Source = BitmapConverter.GetBitmapSource(bitmap);
         }
 
-        private void ExtractParts(Bitmap bitmap)
+        private void ExtractParts(Bitmap bitmap, Bitmap originalBitmap)
         {
             var binarizedImage = BitmapBinarizer.Process(bitmap);
             var lines = HoughTransform.GetLines(binarizedImage);
@@ -80,25 +81,43 @@ namespace GUI
                 return;
             }
 
-            var circleBitmaps = CirclesExtractor.Extract(bitmap, circles, strip);
+            var circleBitmaps = CirclesExtractor.Extract(bitmap, originalBitmap, circles, strip);
             viewModel.Circles.Clear();
-            foreach (var circlesBitmap in circleBitmaps)
+            foreach (var circlesBitmap in circleBitmaps[0])
             {
                 viewModel.Circles.Add(new ImageModel(BitmapConverter.GetBitmapSource(circlesBitmap)));
             }
 
-            var trianglesBitmap = TrianglesExtractor.Extract(bitmap, binarizedImage, lines, strip);
+            var trianglesBitmaps = TrianglesExtractor.Extract(bitmap, originalBitmap, binarizedImage, lines, strip);
             viewModel.Triangles.Clear();
-            foreach (var triangleBitmap in trianglesBitmap)
+            foreach (var triangleBitmap in trianglesBitmaps[0])
             {
                 viewModel.Triangles.Add(new ImageModel(BitmapConverter.GetBitmapSource(triangleBitmap)));
             }
 
-            var rectanglesBitmap = RectanglesExtractor.Extract(bitmap, binarizedImage, lines, strip);
+            var rectanglesBitmaps = RectanglesExtractor.Extract(bitmap, originalBitmap, binarizedImage, lines, strip);
             viewModel.Rectangles.Clear();
-            foreach (var recangleBitmap in rectanglesBitmap)
+            foreach (var recangleBitmap in rectanglesBitmaps[0])
             {
                 viewModel.Rectangles.Add(new ImageModel(BitmapConverter.GetBitmapSource(recangleBitmap)));
+            }
+
+            PerformClassification(circleBitmaps[1], trianglesBitmaps[1], rectanglesBitmaps[1]);
+        }
+
+        private void PerformClassification(List<Bitmap> circles, List<Bitmap> triangles, List<Bitmap> rectangles)
+        {
+            foreach (var circle in circles)
+            {
+                var tmp = ColorInfo.Extract(circle);
+            }
+            foreach (var triangle in triangles)
+            {
+                var tmp = ColorInfo.Extract(triangle);
+            }
+            foreach (var rectangle in rectangles)
+            {
+                var tmp = ColorInfo.Extract(rectangle);
             }
         }
 

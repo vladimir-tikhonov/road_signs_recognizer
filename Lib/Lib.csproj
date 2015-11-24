@@ -50,6 +50,7 @@
     <Compile Include="BitmapBinarizer.cs" />
     <Compile Include="BitmapConverter.cs" />
     <Compile Include="CirclesExtractor.cs" />
+    <Compile Include="ColorInfo.cs" />
     <Compile Include="HoughTransform.cs" />
     <Compile Include="LabColor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
