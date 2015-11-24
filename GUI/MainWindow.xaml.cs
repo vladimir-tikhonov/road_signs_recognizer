@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,7 @@ using GUI.ViewModels;
 using Lib;
 using Application = System.Windows.Application;
 using Image = System.Windows.Controls.Image;
+using Classifier;
 
 namespace GUI
 {
@@ -102,23 +104,48 @@ namespace GUI
                 viewModel.Rectangles.Add(new ImageModel(BitmapConverter.GetBitmapSource(recangleBitmap)));
             }
 
-            PerformClassification(circleBitmaps[1], trianglesBitmaps[1], rectanglesBitmaps[1]);
+            PerformClassification(circleBitmaps[1], trianglesBitmaps[1], rectanglesBitmaps[1], viewModel);
         }
 
-        private void PerformClassification(List<Bitmap> circles, List<Bitmap> triangles, List<Bitmap> rectangles)
+        private void PerformClassification(List<Bitmap> circles, List<Bitmap> triangles, List<Bitmap> rectangles, ImageViewModel viewModel)
         {
+            var signData = new Dictionary<Bitmap, Sign>();
+
             foreach (var circle in circles)
             {
-                var tmp = ColorInfo.Extract(circle);
+                var colorInfo = ColorInfo.Extract(circle);
+                signData.Add(circle, new Sign(100, colorInfo[0], colorInfo[1], colorInfo[2], colorInfo[3]));
             }
             foreach (var triangle in triangles)
             {
-                var tmp = ColorInfo.Extract(triangle);
+                var colorInfo = ColorInfo.Extract(triangle);
+                signData.Add(triangle, new Sign(50, colorInfo[0], colorInfo[1], colorInfo[2], colorInfo[3]));
             }
             foreach (var rectangle in rectangles)
             {
-                var tmp = ColorInfo.Extract(rectangle);
+                var colorInfo = ColorInfo.Extract(rectangle);
+                signData.Add(rectangle, new Sign(150, colorInfo[0], colorInfo[1], colorInfo[2], colorInfo[3]));
             }
+
+            var containers = new[]
+            {
+                null, viewModel.WarningSigns, viewModel.ProhibitingSigns, viewModel.RegulatorySigns, viewModel.InformationSigns,
+                viewModel.TemporarySigns
+            };
+
+            foreach (var container in containers)
+            {
+                container?.Clear();
+            }
+
+            var tc = new PrebuildSignsClassifier();
+            tc.Teach();
+            foreach (var sign in signData)
+            {
+                var classIndex = tc.FindClass(sign.Value);
+                containers[classIndex].Add(new ImageModel(BitmapConverter.GetBitmapSource(sign.Key)));
+            }
+            
         }
 
         // TODO: Remove this

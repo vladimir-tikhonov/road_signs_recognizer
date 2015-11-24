@@ -52,7 +52,7 @@ namespace Lib
                 });
                 image.UnlockBits(bitmapData);
             }
-            return new[] {redPx*100/totalPx, whitePx*100/totalPx, yellowPx*100/totalPx, bluePx*100/totalPx};
+            return new[] {redPx*100/totalPx, whitePx*100/totalPx, yellowPx*1000/totalPx, bluePx*100/totalPx};
         }
     }
 }
