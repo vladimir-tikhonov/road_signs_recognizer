@@ -39,7 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TryClassifier.cs" />
+    <Compile Include="PrebuildSignsClassifier.cs" />
     <Compile Include="Classifier.cs" />
     <Compile Include="Cluster.cs" />
     <Compile Include="Sign.cs" />
