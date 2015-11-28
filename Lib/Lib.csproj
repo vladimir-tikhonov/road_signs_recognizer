@@ -47,6 +47,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BilinearInterpolation.cs" />
     <Compile Include="BitmapBinarizer.cs" />
     <Compile Include="BitmapConverter.cs" />
     <Compile Include="CirclesExtractor.cs" />
