@@ -31,8 +31,9 @@
                     <MenuItem Header="Убирать мусор" Name="DoPerformStrip" IsChecked="True" IsCheckable="true"></MenuItem>
                 </MenuItem>
             </Menu>
+            <ProgressBar Minimum="0" Maximum="100" Height="20" Name="pbStatus" />
         </StackPanel>
-        <Grid DataContext="{StaticResource ImageViewModel}" Background="LightBlue" Margin="0,20,0,0" Name="ImagesGrid">
+        <Grid DataContext="{StaticResource ImageViewModel}" Background="LightBlue" Margin="0,40,0,0" Name="ImagesGrid">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="10*" />
@@ -72,7 +73,7 @@
                                         <Image Source="{Binding Picture}" Width="Auto" Margin="0,2,0,2"></Image>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
-                            
+
                             </ListBox>
                         </DockPanel>
 
@@ -82,11 +83,11 @@
                              ItemsSource="{Binding Rectangles}"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                              ScrollViewer.CanContentScroll="False">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Image Source="{Binding Picture}" Width="Auto" Margin="0,2,0,2"></Image>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding Picture}" Width="Auto" Margin="0,2,0,2"></Image>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
                             </ListBox>
                         </DockPanel>
 
@@ -96,11 +97,11 @@
                              ItemsSource="{Binding Triangles}"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                              ScrollViewer.CanContentScroll="False">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Image Source="{Binding Picture}" Width="Auto" Margin="0,2,0,2"></Image>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding Picture}" Width="Auto" Margin="0,2,0,2"></Image>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
                             </ListBox>
                         </DockPanel>
                     </Grid>

@@ -2,32 +2,36 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Threading.Tasks;
 
 namespace Lib
 {
     public static class CirclesExtractor
     {
-        public static List<Bitmap>[] Extract(Bitmap processedImage, Bitmap originalImage, List<int[]> circles, bool strip = true)
+        public static async Task<List<Bitmap>[]> Extract(Bitmap processedImage, Bitmap originalImage, List<int[]> circles, bool strip = true)
         {
             var extractedFromProcessed = new List<Bitmap>();
             var extractedFromOriginal = new List<Bitmap>();
-
-            foreach (var circleData in circles)
+            await Task.Run(() =>
             {
-                var x = Math.Max(circleData[1] - circleData[2], 0);
-                var y = Math.Max(circleData[0] - circleData[2], 0);
-                var width = circleData[2] * 2;
-                var rect = new Rectangle(x, y, width, width);
-                var croppedImage = processedImage.Clone(rect, processedImage.PixelFormat);
-                var croppedOriginalImage = originalImage.Clone(rect, originalImage.PixelFormat);
-                if (strip)
+                foreach (var circleData in circles)
                 {
-                    croppedImage = StripImage(croppedImage, Color.Black);
-                    croppedOriginalImage = StripImage(croppedOriginalImage, Color.Black, false);
+                    var x = Math.Max(circleData[1] - circleData[2], 0);
+                    var y = Math.Max(circleData[0] - circleData[2], 0);
+                    var width = circleData[2] * 2;
+                    var rect = new Rectangle(x, y, width, width);
+                    var croppedImage = processedImage.Clone(rect, processedImage.PixelFormat);
+                    var croppedOriginalImage = originalImage.Clone(rect, originalImage.PixelFormat);
+                    if (strip)
+                    {
+                        croppedImage = StripImage(croppedImage, Color.Black);
+                        croppedOriginalImage = StripImage(croppedOriginalImage, Color.Black, false);
+                    }
+                    extractedFromProcessed.Add(croppedImage);
+                    extractedFromOriginal.Add(croppedOriginalImage);
                 }
-                extractedFromProcessed.Add(croppedImage);
-                extractedFromOriginal.Add(croppedOriginalImage);
-            }
+            });
+
             return new []{ extractedFromProcessed, extractedFromOriginal };
         }
 

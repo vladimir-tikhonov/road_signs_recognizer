@@ -53,6 +53,7 @@ namespace GUI
 
         private void ListBox_PreviewMouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            pbStatus.Value = 0;
             var image = e.OriginalSource as Image;
             if (image == null)
             {
@@ -66,15 +67,16 @@ namespace GUI
                 where filterModel.Enabled select filterModel.Filter)
                 .Aggregate(bitmap, (current, filter) => filter.Process(current));
 
+            pbStatus.Value = 10;
             ExtractParts(bitmap, originalBitmap);
             FilteredImage.Source = BitmapConverter.GetBitmapSource(bitmap);
         }
 
-        private void ExtractParts(Bitmap bitmap, Bitmap originalBitmap)
+        private async void  ExtractParts(Bitmap bitmap, Bitmap originalBitmap)
         {
             var binarizedImage = BitmapBinarizer.Process(bitmap);
-            var lines = HoughTransform.GetLines(binarizedImage);
-            var circles = HoughTransform.GetCircles(binarizedImage);
+            var linesTask = HoughTransform.GetLines(binarizedImage);
+            var circlesTask = HoughTransform.GetCircles(binarizedImage);
             var strip = DoPerformStrip.IsChecked;
 
             var viewModel = (ImagesGrid.DataContext) as ImageViewModel;
@@ -82,29 +84,34 @@ namespace GUI
             {
                 return;
             }
+            viewModel.Clear();
 
-            var circleBitmaps = CirclesExtractor.Extract(bitmap, originalBitmap, circles, strip);
-            viewModel.Circles.Clear();
-            foreach (var circlesBitmap in circleBitmaps[0])
-            {
-                viewModel.Circles.Add(new ImageModel(BitmapConverter.GetBitmapSource(circlesBitmap)));
-            }
+            var rectanglesBitmapsTask = RectanglesExtractor.Extract(bitmap, originalBitmap, binarizedImage, await linesTask, strip);
+            pbStatus.Value = 40;
+            var trianglesBitmapsTask = TrianglesExtractor.Extract(bitmap, originalBitmap, binarizedImage, await linesTask, strip);
+            pbStatus.Value = 60;
+            var circleBitmapsTask = CirclesExtractor.Extract(bitmap, originalBitmap, await circlesTask, strip);
+            pbStatus.Value = 80;
 
-            var trianglesBitmaps = TrianglesExtractor.Extract(bitmap, originalBitmap, binarizedImage, lines, strip);
-            viewModel.Triangles.Clear();
-            foreach (var triangleBitmap in trianglesBitmaps[0])
-            {
-                viewModel.Triangles.Add(new ImageModel(BitmapConverter.GetBitmapSource(triangleBitmap)));
-            }
-
-            var rectanglesBitmaps = RectanglesExtractor.Extract(bitmap, originalBitmap, binarizedImage, lines, strip);
-            viewModel.Rectangles.Clear();
+            var rectanglesBitmaps = await rectanglesBitmapsTask;
             foreach (var recangleBitmap in rectanglesBitmaps[0])
             {
                 viewModel.Rectangles.Add(new ImageModel(BitmapConverter.GetBitmapSource(recangleBitmap)));
             }
 
+            var trianglesBitmaps = await trianglesBitmapsTask;
+            foreach (var triangleBitmap in trianglesBitmaps[0])
+            {
+                viewModel.Triangles.Add(new ImageModel(BitmapConverter.GetBitmapSource(triangleBitmap)));
+            }
+
+            var circleBitmaps = await circleBitmapsTask;
+            foreach (var circlesBitmap in circleBitmaps[0])
+            {
+                viewModel.Circles.Add(new ImageModel(BitmapConverter.GetBitmapSource(circlesBitmap)));
+            }
             PerformClassification(circleBitmaps[1], trianglesBitmaps[1], rectanglesBitmaps[1], viewModel);
+            pbStatus.Value = 100;
         }
 
         private void PerformClassification(List<Bitmap> circles, List<Bitmap> triangles, List<Bitmap> rectangles, ImageViewModel viewModel)
@@ -132,11 +139,6 @@ namespace GUI
                 null, viewModel.WarningSigns, viewModel.ProhibitingSigns, viewModel.RegulatorySigns, viewModel.InformationSigns,
                 viewModel.TemporarySigns
             };
-
-            foreach (var container in containers)
-            {
-                container?.Clear();
-            }
 
             var tc = new PrebuildSignsClassifier();
             tc.Teach();

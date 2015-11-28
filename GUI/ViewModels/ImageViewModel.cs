@@ -8,7 +8,6 @@ namespace GUI.ViewModels
         public ImageViewModel()
         {
             Images = new ObservableCollection<ImageModel>();
-
             Circles = new ObservableCollection<ImageModel>();
             Rectangles = new ObservableCollection<ImageModel>();
             Triangles = new ObservableCollection<ImageModel>();
@@ -18,6 +17,19 @@ namespace GUI.ViewModels
             RegulatorySigns = new ObservableCollection<ImageModel>();
             InformationSigns = new ObservableCollection<ImageModel>();
             TemporarySigns = new ObservableCollection<ImageModel>();
+        }
+
+        public void Clear()
+        {
+            Circles.Clear();
+            Rectangles.Clear();
+            Triangles.Clear();
+
+            WarningSigns.Clear();
+            ProhibitingSigns.Clear();
+            RegulatorySigns.Clear();
+            InformationSigns.Clear();
+            TemporarySigns.Clear();
         }
 
         public ObservableCollection<ImageModel> Images { get; set; }
