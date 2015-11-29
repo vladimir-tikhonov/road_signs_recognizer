@@ -13,12 +13,12 @@
     </Window.Resources>
     <Grid>
         <StackPanel VerticalAlignment="Top">
-            <Menu Width="Auto" Height="20" DataContext="{StaticResource FilterViewModel}">
+            <Menu Width="Auto" Height="20" >
                 <MenuItem Header="Файл">
                     <MenuItem x:Name="OpenDialog" Header="Выбрать папку..." HorizontalAlignment="Left" Width="180" Click="OpenDialog_Click"/>
                     <MenuItem x:Name="AppExit" Header="Выход" HorizontalAlignment="Left" Width="180" Click="AppExit_Click"/>
                 </MenuItem>
-                <MenuItem Header="Фильтры" Name="FiltersMenu" ItemsSource="{Binding Filters}">
+                <MenuItem Header="Фильтры" Name="FiltersMenu" DataContext="{StaticResource FilterViewModel}" ItemsSource="{Binding Filters}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">
                             <Setter Property="Header" Value="{Binding Name}" />
@@ -26,6 +26,9 @@
                             <Setter Property="IsChecked" Value="{Binding Enabled}" />
                         </Style>
                     </MenuItem.ItemContainerStyle>
+                </MenuItem>
+                <MenuItem Header="Настройки">
+                    <MenuItem Header="Убирать мусор" Name="DoPerformStrip" IsChecked="True" IsCheckable="true"></MenuItem>
                 </MenuItem>
             </Menu>
         </StackPanel>

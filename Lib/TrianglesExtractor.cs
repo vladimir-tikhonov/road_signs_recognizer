@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 
 namespace Lib
@@ -9,7 +10,7 @@ namespace Lib
     {
         private const int AngleTolerance = 10;
 
-        public static List<Bitmap> Extract(Bitmap image, byte[,] binarizedImage, List<int[]> lines)
+        public static List<Bitmap> Extract(Bitmap image, byte[,] binarizedImage, List<int[]> lines, bool strip = true)
         {
             var result = new List<Bitmap>();
 
@@ -34,26 +35,22 @@ namespace Lib
                 var secondtLine = lines[combination[1]];
                 var thirdLine = lines[combination[2]];
 
-                var firstCrossing = GetPointOfCrossing(firstLine, secondtLine, binarizedImage);
-                var secondCrossing = GetPointOfCrossing(firstLine, thirdLine, binarizedImage);
-                var thirdCrossing = GetPointOfCrossing(secondtLine, thirdLine, binarizedImage);
+                var firstCrossing = GetPointOfCrossing(firstLine, secondtLine);
+                var secondCrossing = GetPointOfCrossing(firstLine, thirdLine);
+                var thirdCrossing = GetPointOfCrossing(secondtLine, thirdLine);
 
                 if (!IsValidLine(firstLine, firstCrossing, secondCrossing, binarizedImage, 0.98, 2) ||
                     !IsValidLine(secondtLine, firstCrossing, thirdCrossing, binarizedImage, 0.7, 5) ||
-                    !IsValidLine(thirdLine, secondCrossing, thirdCrossing, binarizedImage, 0.4, 20))
+                    !IsValidLine(thirdLine, secondCrossing, thirdCrossing, binarizedImage, 0.7, 5))
                 {
                     continue;
                 }
 
-                var minX = new int[] { firstCrossing[0], secondCrossing[0], thirdCrossing[0] }.Min();
-                minX = Math.Max(minX - 10, 0);
-                var minY = new int[] { firstCrossing[1], secondCrossing[1], thirdCrossing[1] }.Min();
-                minY = Math.Max(minY - 10, 0);
+                var minX = new[] { firstCrossing[0], secondCrossing[0], thirdCrossing[0] }.Min();
+                var minY = new[] { firstCrossing[1], secondCrossing[1], thirdCrossing[1] }.Min();
 
-                var maxX = new int[] { firstCrossing[0], secondCrossing[0], thirdCrossing[0] }.Max();
-                maxX = Math.Min(maxX + 20, binarizedImage.GetLength(1));
-                var maxY = new int[] { firstCrossing[1], secondCrossing[1], thirdCrossing[1] }.Max();
-                maxY = Math.Min(maxY + 10, binarizedImage.GetLength(0));
+                var maxX = new[] { firstCrossing[0], secondCrossing[0], thirdCrossing[0] }.Max();
+                var maxY = new[] { firstCrossing[1], secondCrossing[1], thirdCrossing[1] }.Max();
 
                 rectangles.Add(new Rectangle(minX, minY, maxX - minX, maxY - minY));
             }
@@ -70,8 +67,31 @@ namespace Lib
 
             foreach (var rectangle in filteredRectangles)
             {
-                result.Add(image.Clone(rectangle, image.PixelFormat));
+                var croppedImage = image.Clone(rectangle, image.PixelFormat);
+                if (strip)
+                {
+                    croppedImage = StripImage(croppedImage);
+                }
+                result.Add(croppedImage);
             }
+            return result;
+        }
+
+        private static Bitmap StripImage(Bitmap bitmap)
+        {
+            var result = bitmap.Clone() as Bitmap;
+            var g = Graphics.FromImage(result);
+            using (Brush br = new SolidBrush(Color.Black))
+            {
+                g.FillRectangle(br, 0, 0, bitmap.Width, bitmap.Height);
+            }
+            var path = new GraphicsPath();
+            var offsetX = (int)(bitmap.Width * 0.10);
+            var offsetY = (int)(bitmap.Height * 0.10);
+            path.AddLines(new[] { new Point(offsetX, bitmap.Height - offsetY), new Point(bitmap.Width / 2, offsetY), new Point(bitmap.Width - offsetX, bitmap.Height - offsetY) });
+            path.CloseAllFigures();
+            g.SetClip(path);
+            g.DrawImage(bitmap, 0, 0);
             return result;
         }
 
@@ -88,7 +108,7 @@ namespace Lib
             return result;
         }
 
-        private static int[] GetPointOfCrossing(int[] firstLine, int[] secondLine, byte[,] binarizedImage)
+        private static int[] GetPointOfCrossing(int[] firstLine, int[] secondLine)
         {
             var theta0 = GradusesToRadian(firstLine[1]);
             var theta1 = GradusesToRadian(secondLine[1]);

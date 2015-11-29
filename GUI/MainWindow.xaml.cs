@@ -78,6 +78,7 @@ namespace GUI
             var binarizedImage = BitmapBinarizer.Process(bitmap);
             var lines = HoughTransform.GetLines(binarizedImage);
             var circles = HoughTransform.GetCircles(binarizedImage);
+            var strip = DoPerformStrip.IsChecked;
 
             var viewModel = (ImagesGrid.DataContext) as ImageViewModel;
             if (viewModel == null)
@@ -85,21 +86,21 @@ namespace GUI
                 return;
             }
 
-            var circleBitmaps = CirclesExtracter.Extract(bitmap, circles);
+            var circleBitmaps = CirclesExtractor.Extract(bitmap, circles, strip);
             viewModel.Circles.Clear();
             foreach (var circlesBitmap in circleBitmaps)
             {
                 viewModel.Circles.Add(new ImageModel(BitmapConverter.GetBitmapSource(circlesBitmap)));
             }
 
-            var trianglesBitmap = TrianglesExtractor.Extract(bitmap, binarizedImage, lines);
+            var trianglesBitmap = TrianglesExtractor.Extract(bitmap, binarizedImage, lines, strip);
             viewModel.Triangles.Clear();
             foreach (var triangleBitmap in trianglesBitmap)
             {
                 viewModel.Triangles.Add(new ImageModel(BitmapConverter.GetBitmapSource(triangleBitmap)));
             }
 
-            var rectanglesBitmap = RectanglesExtractor.Extract(bitmap, binarizedImage, lines);
+            var rectanglesBitmap = RectanglesExtractor.Extract(bitmap, binarizedImage, lines, strip);
             viewModel.Rectangles.Clear();
             foreach (var recangleBitmap in rectanglesBitmap)
             {
