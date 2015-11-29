@@ -54,6 +54,7 @@
     <Compile Include="ColorInfo.cs" />
     <Compile Include="HoughTransform.cs" />
     <Compile Include="LabColor.cs" />
+    <Compile Include="Perceptron.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RectanglesExtractor.cs" />
     <Compile Include="TrianglesExtractor.cs" />
