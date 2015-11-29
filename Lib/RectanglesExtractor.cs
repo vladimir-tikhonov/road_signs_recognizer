@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Lib
 {
@@ -10,103 +11,120 @@ namespace Lib
     {
         private const int AngleTolerance = 10;
 
-        public static List<Bitmap> Extract(Bitmap image, byte[,] binarizedImage, List<int[]> lines, bool strip = true)
+        public static async Task<List<Bitmap>[]> Extract(Bitmap processedImage, Bitmap originalImage, byte[,] binarizedImage, List<int[]> lines, bool strip = true)
         {
-            var result = new List<Bitmap>();
-            var horizontalLines = GetLinesByAngle(90, lines);
-            var verticalLines = GetLinesByAngle(0, lines);
+            var extractedFromProcessed = new List<Bitmap>();
+            var extractedFromOriginal = new List<Bitmap>();
 
-            var combinations = new List<int[]>();
-            foreach (var topLine in horizontalLines)
+            await Task.Run(() =>
             {
-                foreach (var bottomLine in horizontalLines)
+                var horizontalLines = GetLinesByAngle(90, lines);
+                var verticalLines = GetLinesByAngle(0, lines);
+
+                var combinations = new List<int[]>();
+                foreach (var topLine in horizontalLines)
                 {
-                    if (topLine == bottomLine ||
-                        lines[topLine][0] >= (lines[bottomLine][0] - 20))
+                    foreach (var bottomLine in horizontalLines)
+                    {
+                        if (topLine == bottomLine ||
+                            lines[topLine][0] >= (lines[bottomLine][0] - 20))
+                        {
+                            continue;
+                        }
+
+                        foreach (var leftLine in verticalLines)
+                        {
+                            foreach (var rightLine in verticalLines)
+                            {
+                                if (leftLine == rightLine ||
+                                    lines[leftLine][0] >= (lines[rightLine][0] - 20))
+                                {
+                                    continue;
+                                }
+                                combinations.Add(new[] { bottomLine, leftLine, topLine, rightLine });
+                            }
+                        }
+                    }
+                }
+
+                var rectangles = new List<Rectangle>();
+                foreach (var combination in combinations)
+                {
+                    var bottomLine = lines[combination[0]];
+                    var leftLine = lines[combination[1]];
+                    var topLine = lines[combination[2]];
+                    var rightLine = lines[combination[3]];
+
+                    var bottomLeftCrossing = GetPointOfCrossing(bottomLine, leftLine);
+                    var leftTopCrossing = GetPointOfCrossing(leftLine, topLine);
+                    var topRightCrossing = GetPointOfCrossing(topLine, rightLine);
+                    var rightBottomCrossing = GetPointOfCrossing(rightLine, bottomLine);
+
+                    if (!IsValidLine(bottomLine, rightBottomCrossing, bottomLeftCrossing, binarizedImage, 0.9, 4) ||
+                        !IsValidLine(leftLine, bottomLeftCrossing, leftTopCrossing, binarizedImage, 0.9, 4) ||
+                        !IsValidLine(topLine, leftTopCrossing, topRightCrossing, binarizedImage, 0.9, 4) ||
+                        !IsValidLine(rightLine, topRightCrossing, rightBottomCrossing, binarizedImage, 0.9, 4))
                     {
                         continue;
                     }
 
-                    foreach (var leftLine in verticalLines)
+                    var minX = new[] { leftTopCrossing[0], bottomLeftCrossing[0] }.Min();
+                    var minY = new[] { leftTopCrossing[1], bottomLeftCrossing[1] }.Min();
+
+                    var maxX = new[] { rightBottomCrossing[0], topRightCrossing[0] }.Max();
+                    var maxY = new[] { rightBottomCrossing[1], topRightCrossing[1] }.Max();
+
+                    rectangles.Add(new Rectangle(minX, minY, maxX - minX, maxY - minY));
+                }
+
+                var filteredRectangles = new List<Rectangle>();
+                foreach (var rectangle in rectangles)
+                {
+                    if (rectangles.Any(r => r != rectangle && r.Contains(rectangle)))
                     {
-                        foreach (var rightLine in verticalLines)
-                        {
-                            if (leftLine == rightLine ||
-                                lines[leftLine][0] >= (lines[rightLine][0] - 20))
-                            {
-                                continue;
-                            }
-                            combinations.Add(new [] {bottomLine, leftLine, topLine, rightLine} );
-                        }
+                        continue;
                     }
+                    filteredRectangles.Add(rectangle);
                 }
-            }
 
-            var rectangles = new List<Rectangle>();
-            foreach (var combination in combinations)
-            {
-                var bottomLine = lines[combination[0]];
-                var leftLine = lines[combination[1]];
-                var topLine = lines[combination[2]];
-                var rightLine = lines[combination[3]];
-
-                var bottomLeftCrossing = GetPointOfCrossing(bottomLine, leftLine);
-                var leftTopCrossing = GetPointOfCrossing(leftLine, topLine);
-                var topRightCrossing = GetPointOfCrossing(topLine, rightLine);
-                var rightBottomCrossing = GetPointOfCrossing(rightLine, bottomLine);
-
-                if (!IsValidLine(bottomLine, rightBottomCrossing, bottomLeftCrossing, binarizedImage, 0.9, 4) ||
-                    !IsValidLine(leftLine, bottomLeftCrossing, leftTopCrossing, binarizedImage, 0.9, 4) ||
-                    !IsValidLine(topLine, leftTopCrossing, topRightCrossing, binarizedImage, 0.9, 4) ||
-                    !IsValidLine(rightLine, topRightCrossing, rightBottomCrossing, binarizedImage, 0.9, 4))
+                foreach (var rectangle in filteredRectangles)
                 {
-                    continue;
+                    var croppedImage = processedImage.Clone(rectangle, processedImage.PixelFormat);
+                    var croppedOriginalImage = originalImage.Clone(rectangle, originalImage.PixelFormat);
+                    if (strip)
+                    {
+                        croppedImage = StripImage(croppedImage, Color.Black);
+                        croppedOriginalImage = StripImage(croppedOriginalImage, Color.Black, false);
+                    }
+                    extractedFromProcessed.Add(croppedImage);
+                    extractedFromOriginal.Add(croppedOriginalImage);
                 }
+            });
 
-                var minX = new[] { leftTopCrossing[0], bottomLeftCrossing[0] }.Min();
-                var minY = new[] { leftTopCrossing[1], bottomLeftCrossing[1] }.Min();
-
-                var maxX = new[] { rightBottomCrossing[0], topRightCrossing[0] }.Max();
-                var maxY = new[] { rightBottomCrossing[1], topRightCrossing[1] }.Max();
-
-                rectangles.Add(new Rectangle(minX, minY, maxX - minX, maxY - minY));
-            }
-
-            var filteredRectangles = new List<Rectangle>();
-            foreach (var rectangle in rectangles)
-            {
-                if (rectangles.Any(r => r != rectangle && r.Contains(rectangle)))
-                {
-                    continue;
-                }
-                filteredRectangles.Add(rectangle);
-            }
-
-            foreach (var rectangle in filteredRectangles)
-            {
-                var croppedImage = image.Clone(rectangle, image.PixelFormat);
-                if (strip)
-                {
-                    croppedImage = StripImage(croppedImage);
-                }
-                result.Add(croppedImage);
-            }
-
-            return result;
+            return new[] { extractedFromProcessed, extractedFromOriginal };
         }
 
-        private static Bitmap StripImage(Bitmap bitmap)
+        private static Bitmap StripImage(Bitmap bitmap, Color color, bool cutImage = true)
         {
             var result = bitmap.Clone() as Bitmap;
             var g = Graphics.FromImage(result);
-            using (Brush br = new SolidBrush(Color.Black))
+            using (Brush br = new SolidBrush(color))
             {
                 g.FillRectangle(br, 0, 0, bitmap.Width, bitmap.Height);
             }
             var path = new GraphicsPath();
-            var offsetX = (int)(bitmap.Width * 0.10);
-            var offsetY = (int)(bitmap.Height * 0.10);
-            path.AddRectangle(new Rectangle(offsetX, offsetY, bitmap.Width - 2 * offsetX, bitmap.Height - 2 * offsetY));
+
+            if (cutImage)
+            {
+                var offsetX = (int)(bitmap.Width * 0.10);
+                var offsetY = (int)(bitmap.Height * 0.10);
+                path.AddRectangle(new Rectangle(offsetX, offsetY, bitmap.Width - 2 * offsetX, bitmap.Height - 2 * offsetY));
+            }
+            else
+            {
+                path.AddRectangle(new Rectangle(0, 0, bitmap.Width, bitmap.Width));
+            }
+            
             g.SetClip(path);
             g.DrawImage(bitmap, 0, 0);
             return result;

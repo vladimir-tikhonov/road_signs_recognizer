@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Lib
 {
@@ -9,145 +10,153 @@ namespace Lib
         private const double GradientTreshold = 3.0;
         private const int DistQuintizeTreshold = 4;
 
-        public static List<int[]> GetLines(byte[,] image)
+        public static async Task<List<int[]>> GetLines(byte[,] image)
         {
             var result = new List<int[]>();
-            var a = new int[image.Length / 2, 360];
-
-            for (var r = 2; r < image.GetLength(0) - 2; r++)
+            await Task.Run(() =>
             {
-                for (var c = 2; c < image.GetLength(1) - 2; c++)
-                {
-                    var dr = RowGradient(image, r, c);
-                    var dc = ColGradient(image, r, c);
-                    var gmag = Gradient(dr, dc);
+                var a = new int[image.Length / 2, 360];
 
-                    if (gmag > GradientTreshold)
+                for (var r = 2; r < image.GetLength(0) - 2; r++)
+                {
+                    for (var c = 2; c < image.GetLength(1) - 2; c++)
                     {
-                        var theta = Math.Atan2(dr, dc);
-                        if (theta < 0)
+                        var dr = RowGradient(image, r, c);
+                        var dc = ColGradient(image, r, c);
+                        var gmag = Gradient(dr, dc);
+
+                        if (gmag > GradientTreshold)
                         {
-                            theta += 2 * Math.PI;
+                            var theta = Math.Atan2(dr, dc);
+                            if (theta < 0)
+                            {
+                                theta += 2 * Math.PI;
+                            }
+                            var thetaq = (int)RadianToDegree(theta);
+                            var d = (int)Math.Abs(c * Math.Cos(theta) + r * Math.Sin(theta));
+                            var dq = d;
+                            a[dq, thetaq]++;
                         }
-                        var thetaq = (int) RadianToDegree(theta);
-                        var d = (int) Math.Abs(c*Math.Cos(theta) + r*Math.Sin(theta));
-                        var dq = d;
-                        a[dq, thetaq]++;
                     }
                 }
-            }
-            for (var r = 0; r < a.GetLength(0); r++)
-            {
-                for (var c = 0; c < a.GetLength(1); c++)
+                for (var r = 0; r < a.GetLength(0); r++)
                 {
-                    if (a[r, c] > 10)
+                    for (var c = 0; c < a.GetLength(1); c++)
                     {
-                        if (IsLocalMaximum(a, r, c))
+                        if (a[r, c] > 10)
                         {
-                            result.Add(new[] {r, c});
-                        }  
+                            if (IsLocalMaximum(a, r, c))
+                            {
+                                result.Add(new[] { r, c });
+                            }
+                        }
                     }
                 }
-            }
+            });
+
             return result;
         }
 
-        public static List<int[]> GetCircles(byte[,] image)
+        public static async Task<List<int[]>> GetCircles(byte[,] image)
         {
             var result = new List<int[]>();
-            var points = new int[image.GetLength(0), image.GetLength(1)];
-            var radiuses = new List<int>[image.GetLength(0), image.GetLength(1)];
-
-            for (var r = 0; r < image.GetLength(0); r++)
+            await Task.Run(() =>
             {
-                for (var c = 0; c < image.GetLength(1); c++)
+                var points = new int[image.GetLength(0), image.GetLength(1)];
+                var radiuses = new List<int>[image.GetLength(0), image.GetLength(1)];
+
+                for (var r = 0; r < image.GetLength(0); r++)
                 {
-                    var dr = RowGradient(image, r, c);
-                    var dc = ColGradient(image, r, c);
-                    var gmag = Gradient(dr, dc);
-
-                    if (gmag > GradientTreshold)
+                    for (var c = 0; c < image.GetLength(1); c++)
                     {
-                        var theta = Math.Atan2(dc, dr);
-                        if (theta < 0)
-                        {
-                            theta += 2 * Math.PI;
-                        }
-                        var tan = Math.Tan(theta);
-                        if (tan > 1000 || Math.Abs(tan) < 0.5)
-                        {
-                            continue; // whatever
-                        }
+                        var dr = RowGradient(image, r, c);
+                        var dc = ColGradient(image, r, c);
+                        var gmag = Gradient(dr, dc);
 
-                        for (var a = 0; a < image.GetLength(0); a++)
+                        if (gmag > GradientTreshold)
                         {
-                            var b = (int) (a*tan - r*tan + c);
-                            b = b % 2 == 0 ? b : b - 1;
-                            if (b < 0 || b >= image.GetLength(1))
+                            var theta = Math.Atan2(dc, dr);
+                            if (theta < 0)
                             {
-                                continue;
+                                theta += 2 * Math.PI;
                             }
-                            points[a, b]++;
-                            if (radiuses[a, b] == null)
+                            var tan = Math.Tan(theta);
+                            if (tan > 1000 || Math.Abs(tan) < 0.5)
                             {
-                                radiuses[a, b] = new List<int>();
+                                continue; // whatever
                             }
-                            radiuses[a, b].Add((int)Math.Sqrt(Math.Pow(r - a, 2) + Math.Pow(c - b, 2)));
-                        }
-                    }
-                }
-            }
-            var pointsCount = new List<int>();
-            for (var r = 0; r < points.GetLength(0); r++)
-            {
-                for (var c = 0; c < points.GetLength(1); c++)
-                {                   
-                    if (points[r, c] > 10)
-                    {
-                        pointsCount.Add(points[r, c]);
-                    }
-                }
-            }
 
-            var distinctPoints = pointsCount.Distinct().ToList();
-            var treshold = 0;
-            if (distinctPoints.Count > 0)
-            {
-                treshold = distinctPoints.OrderByDescending(p => p).ElementAt(distinctPoints.Count / 2);
-            }          
-            for (var r = 0; r < points.GetLength(0); r++)
-            {
-                for (var c = 0; c < points.GetLength(1); c++)
-                {
-                    if (points[r, c] > treshold)
-                    {
-                        radiuses[r, c] = GetPossibleRadiuses(image, radiuses[r, c], r, c);
-                    }
-                    else
-                    {
-                        radiuses[r, c] = new List<int>();
-                        points[r, c] = 0;
-                    }
-                }
-            }
-
-            for (var r = 0; r < points.GetLength(0); r++)
-            {
-                for (var c = 0; c < points.GetLength(1); c++)
-                {
-                    if (points[r, c] > 0)
-                    {
-                        if (radiuses[r, c].Count > 0)
-                        {
-                            var radius = radiuses[r, c].Max();
-                            if (IsCircleLocalMaximum(radiuses, radius, result, r, c))
+                            for (var a = 0; a < image.GetLength(0); a++)
                             {
-                                result.Add(new[] { r, c, radius });
-                            }                           
+                                var b = (int)(a * tan - r * tan + c);
+                                b = b % 2 == 0 ? b : b - 1;
+                                if (b < 0 || b >= image.GetLength(1))
+                                {
+                                    continue;
+                                }
+                                points[a, b]++;
+                                if (radiuses[a, b] == null)
+                                {
+                                    radiuses[a, b] = new List<int>();
+                                }
+                                radiuses[a, b].Add((int)Math.Sqrt(Math.Pow(r - a, 2) + Math.Pow(c - b, 2)));
+                            }
                         }
                     }
                 }
-            }
+                var pointsCount = new List<int>();
+                for (var r = 0; r < points.GetLength(0); r++)
+                {
+                    for (var c = 0; c < points.GetLength(1); c++)
+                    {
+                        if (points[r, c] > 10)
+                        {
+                            pointsCount.Add(points[r, c]);
+                        }
+                    }
+                }
+
+                var distinctPoints = pointsCount.Distinct().ToList();
+                var treshold = 0;
+                if (distinctPoints.Count > 0)
+                {
+                    treshold = distinctPoints.OrderByDescending(p => p).ElementAt(distinctPoints.Count / 2);
+                }
+                for (var r = 0; r < points.GetLength(0); r++)
+                {
+                    for (var c = 0; c < points.GetLength(1); c++)
+                    {
+                        if (points[r, c] > treshold)
+                        {
+                            radiuses[r, c] = GetPossibleRadiuses(image, radiuses[r, c], r, c);
+                        }
+                        else
+                        {
+                            radiuses[r, c] = new List<int>();
+                            points[r, c] = 0;
+                        }
+                    }
+                }
+
+                for (var r = 0; r < points.GetLength(0); r++)
+                {
+                    for (var c = 0; c < points.GetLength(1); c++)
+                    {
+                        if (points[r, c] > 0)
+                        {
+                            if (radiuses[r, c].Count > 0)
+                            {
+                                var radius = radiuses[r, c].Max();
+                                if (IsCircleLocalMaximum(radiuses, radius, result, r, c))
+                                {
+                                    result.Add(new[] { r, c, radius });
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
             return result;
         }
 

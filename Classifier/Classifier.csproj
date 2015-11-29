@@ -39,7 +39,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+<<<<<<< HEAD
     <Compile Include="TryClassifier.cs" />
+=======
+    <Compile Include="PrebuildSignsClassifier.cs" />
+>>>>>>> refs/remotes/vladimir-tikhonov/master
     <Compile Include="Classifier.cs" />
     <Compile Include="Cluster.cs" />
     <Compile Include="Sign.cs" />
