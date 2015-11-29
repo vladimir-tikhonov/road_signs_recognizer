@@ -70,7 +70,7 @@ namespace Lib
             {
                 for (var j = 0; j < row.Length; j++)
                 {
-                    row[j] = random.NextDouble() * 0.5 - 0.5;
+                    row[j] = random.NextDouble() - 0.5;
                 }
             }
             var normesV = new double[HiddenLayerSize];
@@ -102,7 +102,7 @@ namespace Lib
             {
                 for (var j = 0; j < row.Length; j++)
                 {
-                    row[j] = random.NextDouble() * 0.5 - 0.5;
+                    row[j] = random.NextDouble() - 0.5;
                 }
             }
 

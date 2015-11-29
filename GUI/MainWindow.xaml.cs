@@ -147,7 +147,6 @@ namespace GUI
                 var resizedImage = BilinearInterpolation.Resize(sign.Key, 150, 150);
                 containers[classIndex].Add(new ImageModel(BitmapConverter.GetBitmapSource(resizedImage)));
             }
-            
         }
 
         // TODO: Remove this
