@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -94,9 +93,9 @@ namespace GUI
             pbStatus.Value = 80;
 
             var rectanglesBitmaps = await rectanglesBitmapsTask;
-            foreach (var recangleBitmap in rectanglesBitmaps[0])
+            foreach (var rectangleBitmap in rectanglesBitmaps[0])
             {
-                viewModel.Rectangles.Add(new ImageModel(BitmapConverter.GetBitmapSource(recangleBitmap)));
+                viewModel.Rectangles.Add(new ImageModel(BitmapConverter.GetBitmapSource(rectangleBitmap)));
             }
 
             var trianglesBitmaps = await trianglesBitmapsTask;
@@ -145,7 +144,8 @@ namespace GUI
             foreach (var sign in signData)
             {
                 var classIndex = tc.FindClass(sign.Value);
-                containers[classIndex].Add(new ImageModel(BitmapConverter.GetBitmapSource(sign.Key)));
+                var resizedImage = BilinearInterpolation.Resize(sign.Key, 150, 150);
+                containers[classIndex].Add(new ImageModel(BitmapConverter.GetBitmapSource(resizedImage)));
             }
             
         }

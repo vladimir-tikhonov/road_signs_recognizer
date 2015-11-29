@@ -78,7 +78,7 @@ namespace Lib
                         croppedImage = StripImage(croppedImage, Color.Black);
                         croppedOriginalImage = StripImage(croppedOriginalImage, Color.Black, false);
                     }
-                    extractedFromProcessed.Add(BilinearInterpolation.Resize(croppedImage, 300, 300));
+                    extractedFromProcessed.Add(croppedImage);
                     extractedFromOriginal.Add(croppedOriginalImage);
                 }
             });
