@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5D36383E-B418-454E-B889-69632C98D71B}</ProjectGuid>
+    <ProjectGuid>{6D343768-4206-4614-AE65-F0BD4F53ACCB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Classifier</RootNamespace>
-    <AssemblyName>Classifier</AssemblyName>
+    <RootNamespace>CopyFolder</RootNamespace>
+    <AssemblyName>CopyFolder</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -39,10 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PrebuildSignsClassifier.cs" />
-    <Compile Include="Classifier.cs" />
-    <Compile Include="Cluster.cs" />
-    <Compile Include="Sign.cs" />
+    <Compile Include="CopyImages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

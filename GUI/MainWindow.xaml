@@ -30,6 +30,9 @@
                 <MenuItem Header="Настройки">
                     <MenuItem Header="Убирать мусор" Name="DoPerformStrip" IsChecked="True" IsCheckable="true"></MenuItem>
                 </MenuItem>
+                <MenuItem Header="Персептрон">
+                    <MenuItem x:Name="OpenFolder" Header="Выбрать папку..." HorizontalAlignment="Left" Width="180" Click="OpenFolder_Click"/>
+                </MenuItem>
             </Menu>
             <ProgressBar Minimum="0" Maximum="100" Height="20" Name="pbStatus" />
         </StackPanel>
