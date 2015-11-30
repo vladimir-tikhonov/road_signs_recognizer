@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -50,6 +51,50 @@ namespace GUI
             }
         }
 
+        private async void ProcessFolder_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new FolderBrowserDialog
+            {
+                SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+            };
+            var result = dialog.ShowDialog(this.GetIWin32Window());
+
+            var storage = new Dictionary<string, Bitmap>();
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                foreach (var path in Directory.EnumerateFiles(dialog.SelectedPath, "*.*", SearchOption.AllDirectories)
+                    .Where(file => _imageFileExtensions.Any(x => file.EndsWith(x, StringComparison.OrdinalIgnoreCase))))
+                {
+                    var bitmap = BitmapConverter.GetBitmap(new BitmapImage(new Uri(path)));
+                    bitmap = (from object filterObject in FiltersMenu.ItemsSource
+                              select (filterObject as FilterModel) into filterModel
+                              where filterModel.Enabled
+                              select filterModel.Filter)
+                    .Aggregate(bitmap, (current, filter) => filter.Process(current));
+
+                    var binarizedImage = BitmapBinarizer.Process(bitmap);
+                    var linesTask = HoughTransform.GetLines(binarizedImage);
+                    var circlesTask = HoughTransform.GetCircles(binarizedImage);
+
+                    var rectanglesBitmaps = await RectanglesExtractor.Extract(bitmap, bitmap, binarizedImage, await linesTask, true);
+                    var trianglesBitmaps = await TrianglesExtractor.Extract(bitmap, bitmap, binarizedImage, await linesTask, true);
+                    var circleBitmaps = await CirclesExtractor.Extract(bitmap, bitmap, await circlesTask, true);
+
+                    bitmap =
+                        rectanglesBitmaps[0].Concat(trianglesBitmaps[0])
+                            .Concat(circleBitmaps[0])
+                            .OrderBy(b => b.Width*b.Height).Last();
+                    storage.Add(path, bitmap);
+                }
+            }
+
+            foreach (var element in storage)
+            {
+                BilinearInterpolation.Resize(element.Value, 150, 150)
+                    .Save(element.Key + ".processed.bmp", ImageFormat.Bmp);
+            }
+        }
+
         private void ListBox_PreviewMouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             pbStatus.Value = 0;
@@ -71,7 +116,7 @@ namespace GUI
             FilteredImage.Source = BitmapConverter.GetBitmapSource(bitmap);
         }
 
-        private async void  ExtractParts(Bitmap bitmap, Bitmap originalBitmap)
+        private async void ExtractParts(Bitmap bitmap, Bitmap originalBitmap)
         {
             var binarizedImage = BitmapBinarizer.Process(bitmap);
             var linesTask = HoughTransform.GetLines(binarizedImage);

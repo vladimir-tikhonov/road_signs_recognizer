@@ -15,8 +15,9 @@
         <StackPanel VerticalAlignment="Top">
             <Menu Width="Auto" Height="20" >
                 <MenuItem Header="Файл">
-                    <MenuItem x:Name="OpenDialog" Header="Выбрать папку..." HorizontalAlignment="Left" Width="180" Click="OpenDialog_Click"/>
-                    <MenuItem x:Name="AppExit" Header="Выход" HorizontalAlignment="Left" Width="180" Click="AppExit_Click"/>
+                    <MenuItem x:Name="OpenDialog" Header="Выбрать папку..." HorizontalAlignment="Left" Width="250" Click="OpenDialog_Click"/>
+                    <MenuItem Header="Обработать фотогарфии..." HorizontalAlignment="Left" Width="250" Click="ProcessFolder_Click"/>
+                    <MenuItem x:Name="AppExit" Header="Выход" HorizontalAlignment="Left" Width="250" Click="AppExit_Click"/>
                 </MenuItem>
                 <MenuItem Header="Фильтры" Name="FiltersMenu" DataContext="{StaticResource FilterViewModel}" ItemsSource="{Binding Filters}">
                     <MenuItem.ItemContainerStyle>
