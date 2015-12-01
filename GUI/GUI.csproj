@@ -63,6 +63,9 @@
     </ApplicationDefinition>
     <Compile Include="Extensions\FolderBrowserDialogExtension.cs" />
     <Compile Include="Models\FilterModel.cs" />
+    <Compile Include="Models\SignModel.cs" />
+    <Compile Include="SignDescription.cs" />
+    <Compile Include="ViewModels\SignViewModel.cs" />
     <Compile Include="ViewModels\FilterViewModel.cs" />
     <Compile Include="ViewModels\ImageViewModel.cs" />
     <Page Include="MainWindow.xaml">

@@ -4,12 +4,13 @@ using System.Collections.Generic;
 namespace Lib
 {
     // http://habrahabr.ru/post/198268/
+    [Serializable]
     public class Perceptron
     {
         private const int InputSize = 300;
         private const int HiddenLayerSize = InputSize;
         private const int OutputLayerSize = 5;
-        private const double ErrorTreshold = 0.05;
+        private const double ErrorTreshold = 0.03;
         private const double LearningSpeed = 0.1;
 
         // Веса связей между входным и скрытым слоем
@@ -17,7 +18,7 @@ namespace Lib
         // Веса связей между скрытым и выходным слоем
         private double[][] _w;
         // Входной вектор
-        private int[] _x;
+        private double[] _x;
         // Смещение для нейронов скрытого слоя
         private double[] _v0;
         // Входной сигнал нейронов скрытого слоя
@@ -36,7 +37,7 @@ namespace Lib
             _v = new double[InputSize][];
             _w = new double[HiddenLayerSize][];
 
-            _x = new int[InputSize];
+            _x = new double[InputSize];
             _v0 = new double[HiddenLayerSize];
             _z = new double[HiddenLayerSize];
             _zIn = new double[HiddenLayerSize];
@@ -127,7 +128,7 @@ namespace Lib
             // ---------------------------------------------------
         }
 
-        public double[] Classify(int[] input)
+        public double[] Classify(double[] input)
         {
             _x = input;
             // Шаг 4: обработка входных сигналов на скрытом слое
@@ -170,7 +171,7 @@ namespace Lib
             return _y;
         }
 
-        public void Teach(Dictionary<int[], double[]> samples)
+        public void Teach(Dictionary<double[], double[]> samples)
         {
             double maxError;
             do

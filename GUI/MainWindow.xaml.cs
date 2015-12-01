@@ -4,6 +4,9 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
@@ -20,6 +23,11 @@ namespace GUI
     public partial class MainWindow
     {
         private readonly string[] _imageFileExtensions = {"jpg", "png", "bmp", "jpeg"};
+        private const int GroupsCount = 5;
+        private const int ClassesCount = 5;
+        
+        private const int ResizeWidth = 150;
+        private const int ResizeHeight = 150;
 
         public MainWindow()
         {
@@ -90,9 +98,70 @@ namespace GUI
 
             foreach (var element in storage)
             {
-                BilinearInterpolation.Resize(element.Value, 150, 150)
+                BilinearInterpolation.Resize(element.Value, ResizeWidth, ResizeHeight)   
                     .Save(element.Key + ".processed.bmp", ImageFormat.Bmp);
             }
+        }
+
+        private void Teach_Click(object sender, RoutedEventArgs e)
+        {
+            var teachingData = new List<List<List<double[]>>>();
+            for (var i = 0; i < GroupsCount; i++)
+            {
+                var groupsContainer = new List<List<double[]>>();
+                for (var j = 0; j < ClassesCount; j++)
+                {
+                    groupsContainer.Add(new List<double[]>());
+                }
+                teachingData.Add(groupsContainer);
+            }
+
+            var dialog = new FolderBrowserDialog
+            {
+                SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+            };
+            var result = dialog.ShowDialog(this.GetIWin32Window());
+            
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                foreach (var path in Directory.EnumerateFiles(dialog.SelectedPath, "*.*", SearchOption.AllDirectories)
+                    .Where(file =>  file.EndsWith(".processed.bmp", StringComparison.OrdinalIgnoreCase)))
+                {
+                    var bitmap = BitmapConverter.GetBitmap(new BitmapImage(new Uri(path)));
+                    var histogram = HistogramExtracter.Process(bitmap);
+                    var tmp = path.Split('\\').ToList();
+                    tmp.Reverse();
+                    var currentGroup = int.Parse(tmp[2]) - 1;
+                    var currentClass = int.Parse(tmp[1]) - 1;
+                    teachingData[currentGroup][currentClass].Add(histogram);
+                }
+            }
+
+            var perceptrons = new List<Perceptron>();
+            perceptrons.AddRange((Enumerable.Repeat(new Perceptron(), GroupsCount)));
+            Parallel.ForEach(teachingData, groupData =>
+            {
+                var teachingSet = new Dictionary<double[], double[]>();
+                for (var i = 0; i < groupData.Count; i++)
+                {
+                    var classData = groupData[i];
+                    var expectedOutput = new double[groupData.Count];
+                    expectedOutput[i] = 1;
+                    foreach (var classInput in classData)
+                    {
+                        teachingSet.Add(classInput, expectedOutput);
+                    }
+                }
+                var perceptron = new Perceptron();
+                perceptron.Reset();
+                perceptron.Teach(teachingSet);
+                var index = teachingData.IndexOf(groupData);
+                perceptrons[index] = perceptron;
+            });
+            var formatter = new BinaryFormatter();
+            Stream stream = new FileStream(dialog.SelectedPath + "\\perceptrons.bin", FileMode.Create, FileAccess.Write, FileShare.None);
+            formatter.Serialize(stream, perceptrons);
+            stream.Close();
         }
 
         private void ListBox_PreviewMouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -154,74 +223,62 @@ namespace GUI
             {
                 viewModel.Circles.Add(new ImageModel(BitmapConverter.GetBitmapSource(circlesBitmap)));
             }
-            PerformClassification(circleBitmaps[1], trianglesBitmaps[1], rectanglesBitmaps[1], viewModel);
+            PerformClassification(circleBitmaps, trianglesBitmaps, rectanglesBitmaps, viewModel);
             pbStatus.Value = 100;
         }
 
-        private void PerformClassification(List<Bitmap> circles, List<Bitmap> triangles, List<Bitmap> rectangles, ImageViewModel viewModel)
+        private void PerformClassification(List<Bitmap>[] circles, List<Bitmap>[] triangles, List<Bitmap>[] rectangles, ImageViewModel viewModel)
         {
-            var signData = new Dictionary<Bitmap, Sign>();
+            var signData = new Dictionary<Bitmap[], Sign>();
 
-            foreach (var circle in circles)
+            for (int i = 0; i < circles[1].Count; i++)
             {
+                var circle = circles[1][i];
                 var colorInfo = ColorInfo.Extract(circle);
-                signData.Add(circle, new Sign(100, colorInfo[0], colorInfo[1], colorInfo[2], colorInfo[3]));
+                signData.Add(new[] { circles[0][i] , circles[1][i] }, new Sign(100, colorInfo[0], colorInfo[1], colorInfo[2], colorInfo[3]));
             }
-            foreach (var triangle in triangles)
+            for (int i = 0; i < triangles[1].Count; i++)
             {
+                var triangle = triangles[1][i];
                 var colorInfo = ColorInfo.Extract(triangle);
-                signData.Add(triangle, new Sign(50, colorInfo[0], colorInfo[1], colorInfo[2], colorInfo[3]));
+                signData.Add(new[] { triangles[0][i], triangles[1][i] }, new Sign(50, colorInfo[0], colorInfo[1], colorInfo[2], colorInfo[3]));
             }
-            foreach (var rectangle in rectangles)
+            for (int i = 0; i < rectangles[1].Count; i++)
             {
+                var rectangle = rectangles[1][i];
                 var colorInfo = ColorInfo.Extract(rectangle);
-                signData.Add(rectangle, new Sign(150, colorInfo[0], colorInfo[1], colorInfo[2], colorInfo[3]));
+                signData.Add(new[] { rectangles[0][i], rectangles[1][i] }, new Sign(150, colorInfo[0], colorInfo[1], colorInfo[2], colorInfo[3]));
             }
 
             var containers = new[]
             {
-                null, viewModel.WarningSigns, viewModel.ProhibitingSigns, viewModel.RegulatorySigns, viewModel.InformationSigns,
+                viewModel.WarningSigns, viewModel.ProhibitingSigns, viewModel.RegulatorySigns, viewModel.InformationSigns,
                 viewModel.TemporarySigns
             };
 
+            var formatter = new BinaryFormatter();
+            Stream stream = new FileStream("..\\..\\..\\perceptrons.bin", FileMode.Open, FileAccess.Read, FileShare.None);
+            var perceptrons = (List<Perceptron>)formatter.Deserialize(stream);
+            stream.Close();
+
             var tc = new PrebuildSignsClassifier();
             tc.Teach();
+            var signsViewModel = (SignsGrid.DataContext) as SignViewModel;
+            signsViewModel.Signs.Clear();
+
             foreach (var sign in signData)
             {
-                var classIndex = tc.FindClass(sign.Value);
-                var resizedImage = BilinearInterpolation.Resize(sign.Key, 150, 150);
-                containers[classIndex].Add(new ImageModel(BitmapConverter.GetBitmapSource(resizedImage)));
-            }
-        }
+                var groupIndex = tc.FindClass(sign.Value) - 1;
+                var signsImageSource = BitmapConverter.GetBitmapSource(sign.Key[1]);
+                containers[groupIndex].Add(new ImageModel(signsImageSource));
+                var perceptron = perceptrons[groupIndex];
+                var histogram =
+                    HistogramExtracter.Process(BilinearInterpolation.Resize(sign.Key[0], ResizeWidth, ResizeHeight));
+                var classificationResult = perceptron.Classify(histogram).ToList();
+                var classIndex = classificationResult.IndexOf(classificationResult.Max());
+                var description = SignDescription.Get(groupIndex, classIndex);
+                signsViewModel.Signs.Add(new SignModel(signsImageSource, description));
 
-        // TODO: Remove this
-        private void DrawLinesOnBitmap(Bitmap bitmap, List<int[]> lines)
-        {
-            using (var graphics = Graphics.FromImage(bitmap))
-            {
-                var pen = new Pen(Color.Yellow, 1);
-                foreach (var line in lines)
-                {
-                    if (line[1] <= 90)
-                    {
-                        var xStart = line[0] / (float)Math.Cos(line[1] * (Math.PI / 180.0));
-                        float yStart = 0;
-                        float xEnd = 0;
-                        var yEnd = line[0] / (float)Math.Cos((90 - line[1]) * (Math.PI / 180.0));
-                        if (line[1] == 0)
-                        {
-                            yEnd = bitmap.Height;
-                            xEnd = xStart;
-                        }
-                        if (line[1] == 90)
-                        {
-                            xStart = 0;
-                            yStart = yEnd;
-                            xEnd = bitmap.Width;
-                        }
-                        graphics.DrawLine(pen, xStart, yStart, xEnd, yEnd);
-                    }
-                }
             }
         }
     }

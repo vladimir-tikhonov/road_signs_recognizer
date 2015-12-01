@@ -52,6 +52,7 @@
     <Compile Include="BitmapConverter.cs" />
     <Compile Include="CirclesExtractor.cs" />
     <Compile Include="ColorInfo.cs" />
+    <Compile Include="HistogramExtracter.cs" />
     <Compile Include="HoughTransform.cs" />
     <Compile Include="LabColor.cs" />
     <Compile Include="Perceptron.cs" />
