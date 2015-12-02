@@ -17,6 +17,7 @@ using Lib;
 using Application = System.Windows.Application;
 using Image = System.Windows.Controls.Image;
 using Classifier;
+using CopyImages;
 
 namespace GUI
 {
@@ -36,7 +37,28 @@ namespace GUI
 
         private void AppExit_Click(object sender, RoutedEventArgs e)
         {
+            PrebuildSignsClassifier tc = new PrebuildSignsClassifier();
+            List<Sign> result = tc.Teach();
+            int num = tc.FindClass(new Sign(20,1, 27, 1,57));
+
+
             Application.Current.Shutdown();
+        }
+
+        private void OpenFolder_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new FolderBrowserDialog
+            {
+                SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+            };
+            var result = dialog.ShowDialog(this.GetIWin32Window());
+            //var viewModel = new ImageViewModel();
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                //open folder, which contains folder "original"
+                string folderName = dialog.SelectedPath;
+                CopyImages.CopyImages.Copy(folderName);
+            }
         }
 
         private void OpenDialog_Click(object sender, RoutedEventArgs e)

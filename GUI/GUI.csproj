@@ -115,6 +115,10 @@
       <Project>{5d36383e-b418-454e-b889-69632c98d71b}</Project>
       <Name>Classifier</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CopyFolder\CopyImages.csproj">
+      <Project>{6d343768-4206-4614-ae65-f0bd4f53accb}</Project>
+      <Name>CopyImages</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Filters\Filters.csproj">
       <Project>{e0a47230-af98-444b-b5f9-ca3cc1deeb44}</Project>
       <Name>Filters</Name>
